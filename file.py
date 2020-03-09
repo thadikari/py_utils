@@ -16,11 +16,12 @@ def resolve_data_dir_os(proj_name, extra=[]):
 
 
 class CSVFile:
-    def __init__(self, file_name, work_dir, header):
-        path = os.path.join(work_dir, file_name)
-        self.fp = open(path, 'w', newline='')
+    def __init__(self, file_name, work_dir=None, header=None, mode='w'):
+        path = file_name if work_dir is None else os.path.join(work_dir, file_name)
+        self.fp = open(path, mode, newline='')
         self.csv = csv.writer(self.fp, delimiter=',')
-        self.csv.writerow(header)
+        if header is not None: self.csv.writerow(header)
+        self.header = header
 
     def writerow(self, line, flush=False):
         self.csv.writerow(line)
