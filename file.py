@@ -10,7 +10,7 @@ def resolve_data_dir(proj_name):
 def resolve_data_dir_os(proj_name, extra=[]):
     if os.name == 'nt': # if windows
         curr_path = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(curr_path, '..', 'data', *extra)
+        return os.path.join(curr_path, '..', '..', 'data', *extra)
     else:
         return resolve_data_dir(proj_name)
 
