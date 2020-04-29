@@ -1,9 +1,37 @@
+import tensorflow_datasets as tfds
 from tensorflow import keras
 import tensorflow as tf
 import numpy as np
 import os
 
 
+def get_dataset_pipeline(name, batch_size, test_batch_size):
+    splits, ds_info = tfds.load(name, with_info=True)
+    train_size = ds_info.splits['train'].num_examples
+    test_size = ds_info.splits['test'].num_examples
+    train_ds = splits['train'].shuffle(train_size).repeat().batch(batch_size)
+    test_ds = splits['test']
+    if test_batch_size<=0:
+        test_ds = test_ds.shuffle(test_size).repeat().batch(test_size)
+    else:
+        test_ds = test_ds.repeat().batch(test_batch_size)
+
+    iter_train_handle = train_ds.make_one_shot_iterator().string_handle()
+    iter_test_handle = test_ds.make_one_shot_iterator().string_handle()
+
+    handle = tf.placeholder(tf.string, shape=[])
+    iterator = tf.data.Iterator.from_string_handle(handle, tf.compat.v1.data.get_output_types(train_ds), tf.compat.v1.data.get_output_shapes(train_ds))
+    next_batch = iterator.get_next()
+    x_, y_ = tf.cast(next_batch['image'], tf.float32)/255.0, next_batch['label']
+
+    def init_call(sess):
+        handle_train, handle_test = sess.run([iter_train_handle, iter_test_handle])
+        return {handle: handle_train}, {handle: handle_test}
+
+    return x_, y_, init_call
+
+
+# depricated - the old way of loading data with keras
 def get_dataset(name):
     # Keras automatically creates a cache directory in ~/.keras/datasets for
     # storing the downloaded MNIST data. This creates a race
