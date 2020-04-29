@@ -6,16 +6,23 @@ import os
 
 
 def get_dataset_pipeline(name, batch_size, test_batch_size):
+    return prep_iterator(*load_datasets(name, batch_size, test_batch_size))
+
+def load_datasets(name, batch_size, test_batch_size):
     splits, ds_info = tfds.load(name, with_info=True)
     train_size = ds_info.splits['train'].num_examples
     test_size = ds_info.splits['test'].num_examples
-    train_ds = splits['train'].shuffle(train_size).repeat().batch(batch_size)
+    train_ds = splits['train'].shuffle(train_size).repeat().batch(batch_size).prefetch(4)
     test_ds = splits['test']
     if test_batch_size<=0:
-        test_ds = test_ds.shuffle(test_size).repeat().batch(test_size)
+        test_ds = test_ds.shuffle(test_size).repeat().batch(test_size).prefetch(2)
     else:
-        test_ds = test_ds.repeat().batch(test_batch_size)
+        test_ds = test_ds.repeat().batch(test_batch_size).prefetch(2)
 
+    # fig = tfds.show_examples(ds_info, test_ds)
+    return train_ds, test_ds
+
+def prep_iterator(train_ds, test_ds):
     iter_train_handle = train_ds.make_one_shot_iterator().string_handle()
     iter_test_handle = test_ds.make_one_shot_iterator().string_handle()
 

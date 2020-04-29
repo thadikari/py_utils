@@ -1,11 +1,14 @@
 import tensorflow as tf
 
 
-def create_plh():
-    image = tf.placeholder(tf.float32, shape=[None, 227, 227, 3])
-    label = tf.placeholder(tf.float32, shape=[None])
+def create_plh(with_data=True):
     keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-    return image, label, keep_prob
+    if with_data:
+        image = tf.placeholder(tf.float32, shape=[None, 227, 227, 3])
+        label = tf.placeholder(tf.float32, shape=[None])
+        return image, label, keep_prob
+    else:
+        return keep_prob
 
 
 def alexnet(images, keep_prob):
