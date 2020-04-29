@@ -77,11 +77,24 @@ def random_subset(x_test, y_test, test_size):
     x_test, y_test = permute(x_test, y_test)
     return x_test[:test_size], y_test[:test_size]
 
-def compute_metrics(logits, target, num_classes):
+
+def compute_metrics_inner(logits, target, correct_pred):
+    num_classes = logits.shape[-1]
     target_1h = tf.one_hot(tf.cast(target, tf.int32), num_classes)
     losses = tf.losses.softmax_cross_entropy(target_1h, logits, reduction='none')
     sum_loss = tf.reduce_sum(losses)
     avg_loss = tf.reduce_mean(losses)
-    correct_pred = tf.equal(tf.argmax(logits, 1), tf.cast(target, 'int64'))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name='accuracy')
     return accuracy, sum_loss, avg_loss
+
+def compute_metrics_topk(logits, target, k):
+    correct_pred = tf.nn.in_top_k(predictions=logits, targets=target, k=k)
+    return compute_metrics_inner(logits, target, correct_pred)
+
+def compute_metrics(logits, target):
+    correct_pred = tf.equal(tf.argmax(logits, 1), tf.cast(target, 'int64'))
+    return compute_metrics_inner(logits, target, correct_pred)
+
+
+def l2_reg_loss(var_list):
+    return tf.add_n([tf.nn.l2_loss(v) for v in var_list])
