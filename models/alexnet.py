@@ -3,12 +3,14 @@ import tensorflow as tf
 
 def create_plh(with_data=True):
     keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+    feed_dicts = {keep_prob:0.5}, {keep_prob:1.0}
+    kwargs = {'keep_prob': keep_prob}
     if with_data:
         image = tf.placeholder(tf.float32, shape=[None, 227, 227, 3])
         label = tf.placeholder(tf.float32, shape=[None])
-        return image, label, keep_prob
+        return image, label, kwargs, feed_dicts
     else:
-        return keep_prob
+        return kwargs, feed_dicts
 
 
 def alexnet(images, keep_prob):
