@@ -10,7 +10,7 @@ def create_plh(with_data=True):
     if with_data:
         x = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name='input_x')
         y = tf.placeholder(tf.float32, shape=[None], name='output_y')
-        return x, y, kwargs, feed_dicts
+        return (x, y), kwargs, feed_dicts
     else:
         return kwargs, feed_dicts
 

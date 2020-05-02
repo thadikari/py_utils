@@ -191,7 +191,7 @@ def block_group(inputs, filters, block_fn, blocks, strides, dropoutrate, is_trai
 def create_model(inputs, is_training):
     """Constructs the ResNet model given the inputs."""
 
-    depth = 16
+    depth = 28
     k = 2
     num_classes = 1000
     dropoutrate = 0

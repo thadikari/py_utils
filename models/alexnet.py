@@ -8,7 +8,7 @@ def create_plh(with_data=True):
     if with_data:
         image = tf.placeholder(tf.float32, shape=[None, 227, 227, 3])
         label = tf.placeholder(tf.float32, shape=[None])
-        return image, label, kwargs, feed_dicts
+        return (image, label), kwargs, feed_dicts
     else:
         return kwargs, feed_dicts
 

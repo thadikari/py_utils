@@ -1,5 +1,4 @@
 import tensorflow_datasets as tfds
-from tensorflow import keras
 import tensorflow as tf
 import numpy as np
 import os
@@ -32,10 +31,28 @@ def prep_iterator(train_ds, test_ds):
     x_, y_ = tf.cast(next_batch['image'], tf.float32)/255.0, next_batch['label']
 
     def init_call(sess):
-        handle_train, handle_test = sess.run([iter_train_handle, iter_test_handle])
-        return {handle: handle_train}, {handle: handle_test}
+        init_call.train, init_call.test = sess.run([iter_train_handle, iter_test_handle])
 
-    return x_, y_, init_call
+    get_train_fd = lambda: {handle: init_call.train}
+    get_test_fd = lambda: {handle: init_call.test}
+
+    return (x_, y_), (get_train_fd, get_test_fd), init_call
+
+
+def merge_feed_dicts(*train_test_dicts_list):
+    ret_callers = []
+    train_list_test_list = list(zip(*train_test_dicts_list))
+    for feed_dict_list in train_list_test_list:
+        # https://stackoverflow.com/questions/3431676/creating-functions-in-a-loop
+        # need early binding within a for loop
+        def get_fd_call(feed_dict_list=feed_dict_list):
+            merged_dict = {}
+            for feed_dict in feed_dict_list:
+                if callable(feed_dict): feed_dict = feed_dict()
+                merged_dict.update(feed_dict)
+            return merged_dict
+        ret_callers.append(get_fd_call)
+    return ret_callers
 
 
 # depricated - the old way of loading data with keras
@@ -55,6 +72,7 @@ def get_dataset(name):
             else:
                 raise
 
+    from tensorflow import keras
     (x_train, y_train), (x_test, y_test) = getattr(keras.datasets, name).load_data()
     x_train = x_train/255.0
     x_test = x_test/255.0
