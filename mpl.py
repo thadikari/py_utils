@@ -37,3 +37,19 @@ def bind_fig_save_args(parser):
     parser.add_argument('--save', help='save plots', action='store_true')
     exts_ = ['png', 'pdf']
     parser.add_argument('--ext', help='plot save extention', nargs='*', default=exts_, choices=exts_)
+
+
+def bind_subplot_args(parser, ax_size_default=[4,3]):
+    parser.add_argument('--subplot', help='subplot config: rows_cols', default=None, type=int, nargs=2)
+    parser.add_argument('--ax_size', help='width, height per axis', type=float, nargs=2, default=ax_size_default)
+
+def get_subplot_config(count):
+    return {1:(1,1), 2:(1,2), 3:(1,3), 4:(2,2), 5:(2,3),
+            6:(2,3), 7:(3,3), 8:(3,3), 9:(3,3)}[count]
+
+def get_subplot_axes(_a, count, fig=None):
+    if fig is None: fig = plt.gcf()
+    rows_cols = _a.subplot if _a.subplot else get_subplot_config(count)
+    fig.set_size_inches(_a.ax_size[0]*rows_cols[1], _a.ax_size[1]*rows_cols[0])
+    axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
+    return axes, fig

@@ -188,13 +188,9 @@ def block_group(inputs, filters, block_fn, blocks, strides, dropoutrate, is_trai
 # ##################### Build the neural network model #######################
 
 
-def create_model(inputs, is_training):
+def create_model(inputs, is_training, depth=28, k=2, num_classes=1000, dropoutrate=0):
     """Constructs the ResNet model given the inputs."""
 
-    depth = 28
-    k = 2
-    num_classes = 1000
-    dropoutrate = 0
     img_size = inputs.shape[1]
     num_blocks = (depth - 4) // 6
     if depth % 6 != 4: raise ValueError('depth must be 6n + 4:', depth)
