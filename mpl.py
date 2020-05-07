@@ -5,8 +5,8 @@ import matplotlib
 
 #https://stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex
 def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=None):
-    custom_cycler = (cycler(color=['r', 'b', 'g', 'y', 'k']) +
-                     cycler(linestyle=['-', '--', ':', '-.', '-']))
+    custom_cycler = (cycler(color=['r', 'b', 'g', 'y', 'k', 'm', 'c']*4) +
+                     cycler(linestyle=['-', '--', ':', '-.']*7))
     if modify_cycler: plt.rc('axes', prop_cycle=custom_cycler)
     matplotlib.rcParams['mathtext.fontset'] = 'stix'
     matplotlib.rcParams['font.family'] = 'STIXGeneral'
