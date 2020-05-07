@@ -13,4 +13,6 @@ python -c 'import tensorflow_datasets as tfds; tfds.load("imagenet_resized/64x64
 python -c 'import tensorflow_datasets as tfds; tfds.load("imagenet2012")
 ```
 
+* Some error can be fixed by prefixing `CUDA_VISIBLE_DEVICES=""` to download commands.
+
 * The last requires manually downloading original imagenet data to `tensorflow_datasets/downloads/manual` from http://www.image-net.org/challenges/LSVRC/2012/downloads as instructed in https://www.tensorflow.org/datasets/catalog/imagenet2012. 
