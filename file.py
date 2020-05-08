@@ -3,9 +3,8 @@ import os
 
 
 def resolve_data_dir(proj_name):
-    SCRATCH = os.environ.get('SCRATCH', None)
-    if not SCRATCH: SCRATCH = os.path.join(os.path.expanduser('~'), 'SCRATCH')
-    return os.path.join(SCRATCH, proj_name)
+    scratch = os.path.join(os.path.expanduser('~'), 'scratch')
+    return os.path.join(scratch, proj_name)
 
 def resolve_data_dir_os(proj_name, extra=[]):
     if os.name == 'nt': # if windows
