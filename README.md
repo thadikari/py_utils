@@ -24,3 +24,8 @@
 * Some downloading and unpacking errors can be fixed by prefixing `CUDA_VISIBLE_DEVICES=""` to download commands.
 
 * The last requires manually downloading original imagenet data to `tensorflow_datasets/downloads/manual` from http://www.image-net.org/challenges/LSVRC/2012/downloads as instructed in https://www.tensorflow.org/datasets/catalog/imagenet2012. 
+  ```
+  http://www.image-net.org/challenges/LSVRC/2012/dd31405981ef5f776aa17412e1f0c112/ILSVRC2012_img_train.tar
+  http://www.image-net.org/challenges/LSVRC/2012/dd31405981ef5f776aa17412e1f0c112/ILSVRC2012_img_val.tar
+  ```
+
