@@ -58,7 +58,9 @@ class period(BaseSchedule):
         parser.add_argument('--lrate_reduce_every', help='if one value reduce every N iterations, otherwise reduce at each value', type=int, nargs='*', default=[300])
         parser.add_argument('--lrate_reduce_frac', help='reduce by this fraction', type=float, default=0.5)
 
-    def to_str_(self, _a): return f'{_a.lrate_reduce_every}_{_a.lrate_reduce_frac:g}'
+    def to_str_(self, _a):
+        joined = '-'.join(map(str, (_a.lrate_reduce_every)))
+        return f'{joined}_{_a.lrate_reduce_frac:g}'
 
     def get_rate_(self, _a, global_step):
         val = math.floor(global_step/_a.lrate_reduce_every[0])
