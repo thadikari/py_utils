@@ -28,6 +28,9 @@ def fmt_ax(ax, xlab, ylab, leg, grid=1):
 def save_show_fig(args, plt, file_path):
     plt.tight_layout()
     if args.save:
+        ext_str = ','.join(args.ext)
+        if len(args.ext)>1: ext_str = f'{{{ext_str}}}'
+        print(f'Saving figure to {file_path}.{ext_str}')
         for ext in args.ext:
             plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight')
     if not args.silent: plt.show()
@@ -53,3 +56,11 @@ def get_subplot_axes(_a, count, fig=None):
     fig.set_size_inches(_a.ax_size[0]*rows_cols[1], _a.ax_size[1]*rows_cols[0])
     axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
     return axes, fig
+
+def get_best_time_scale(seconds, label=None):
+    if seconds>3600*24 *5: div,unit = 3600*24, 'days'
+    elif seconds>3600 *5: div,unit = 3600, 'hrs'
+    elif seconds>60 *5: div,unit = 60, 'min'
+    else: div,unit = 60,'s'
+    if label: return div,unit, f'{label} ({unit})'
+    else: return div,unit
