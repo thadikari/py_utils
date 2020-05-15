@@ -4,39 +4,36 @@ import numpy as np
 import os
 
 
-def get_dataset_pipeline(name, batch_size, test_batch_size):
-    return prep_iterator(*load_datasets(name, batch_size, test_batch_size))
-
-def load_datasets(name, batch_size, test_batch_size):
+def make_dataset(name, dataset_args):
     splits, ds_info = tfds.load(name, with_info=True)
     train_size = ds_info.splits['train'].num_examples
     test_size = ds_info.splits['test'].num_examples
-    train_ds = splits['train'].shuffle(train_size).repeat().batch(batch_size).prefetch(4)
-    test_ds = splits['test']
-    if test_batch_size<=0:
-        test_ds = test_ds.shuffle(test_size).repeat().batch(test_size).prefetch(2)
-    else:
-        test_ds = test_ds.repeat().batch(test_batch_size).prefetch(2)
+    dataset_args.update({'train_buffer':train_size, 'train_prefetch':10,
+                         'test_buffer':test_size, 'test_prefetch':10})
+    return Dataset(splits['train'], splits['test'], **dataset_args)
 
-    # fig = tfds.show_examples(ds_info, test_ds)
-    return train_ds, test_ds
 
-def prep_iterator(train_ds, test_ds):
-    iter_train_handle = train_ds.make_one_shot_iterator().string_handle()
-    iter_test_handle = test_ds.make_one_shot_iterator().string_handle()
+class Dataset:
+    def __init__(self, train_ds, test_ds, batch_size, test_size,
+                 train_buffer, test_buffer, train_prefetch, test_prefetch,
+                 num_workers=1, worker_index=0):
 
-    handle = tf.placeholder(tf.string, shape=[])
-    iterator = tf.data.Iterator.from_string_handle(handle, tf.compat.v1.data.get_output_types(train_ds), tf.compat.v1.data.get_output_shapes(train_ds))
-    next_batch = iterator.get_next()
-    x_, y_ = tf.cast(next_batch['image'], tf.float32)/255.0, next_batch['label']
+        train_ds = train_ds.shard(num_shards=num_workers, index=worker_index)\
+                    .shuffle(train_buffer).repeat().batch(batch_size).prefetch(train_prefetch)
+        test_ds = test_ds.shuffle(test_buffer).repeat().batch(test_size).prefetch(test_prefetch)
 
-    def init_call(sess):
-        init_call.train, init_call.test = sess.run([iter_train_handle, iter_test_handle])
+        v1d = tf.compat.v1.data
+        self.handles = [_ds.make_one_shot_iterator().string_handle() for _ds in [train_ds, test_ds]]
+        self.handle = tf.placeholder(tf.string, shape=[])
+        iterator = v1d.Iterator.from_string_handle(self.handle, v1d.get_output_types(train_ds), v1d.get_output_shapes(train_ds))
+        next_batch = iterator.get_next()
+        self.placeholders = tf.cast(next_batch['image'], tf.float32)/255.0, next_batch['label']
 
-    get_train_fd = lambda: {handle: init_call.train}
-    get_test_fd = lambda: {handle: init_call.test}
+    def init(self, sess):
+        self.train_fd, self.test_fd = [{self.handle: hl} for hl in sess.run(self.handles)]
 
-    return (x_, y_), (get_train_fd, get_test_fd), init_call
+    def get_train_fd(self): return self.train_fd
+    def get_test_fd(self): return self.test_fd
 
 
 def merge_feed_dicts(*train_test_dicts_list):
@@ -53,47 +50,6 @@ def merge_feed_dicts(*train_test_dicts_list):
             return merged_dict
         ret_callers.append(get_fd_call)
     return ret_callers
-
-
-# depricated - the old way of loading data with keras
-def get_dataset(name):
-    # Keras automatically creates a cache directory in ~/.keras/datasets for
-    # storing the downloaded MNIST data. This creates a race
-    # condition among the workers that share the same filesystem. If the
-    # directory already exists by the time this worker gets around to creating
-    # it, ignore the resulting exception and continue.
-    cache_dir = os.path.join(os.path.expanduser('~'), '.keras', 'datasets')
-    if not os.path.exists(cache_dir):
-        try:
-            os.mkdir(cache_dir)
-        except OSError as e:
-            if e.errno == errno.EEXIST and os.path.isdir(cache_dir):
-                pass
-            else:
-                raise
-
-    from tensorflow import keras
-    (x_train, y_train), (x_test, y_test) = getattr(keras.datasets, name).load_data()
-    x_train = x_train/255.0
-    x_test = x_test/255.0
-    return (x_train, np.squeeze(y_train)), (x_test, np.squeeze(y_test))
-
-def permute(x_, y_, seed=None):
-    p = np.random.RandomState(seed=seed).permutation(len(x_))
-    return x_[p], y_[p]
-
-def input_generator(x_train, y_train, batch_size):
-    while True:
-        x_train, y_train = permute(x_train, y_train)
-        index = 0
-        while index <= len(x_train) - batch_size:
-            yield x_train[index:index + batch_size], \
-                  y_train[index:index + batch_size],
-            index += batch_size
-
-def random_subset(x_test, y_test, test_size):
-    x_test, y_test = permute(x_test, y_test)
-    return x_test[:test_size], y_test[:test_size]
 
 
 def compute_metrics_inner(logits, target, correct_pred):
