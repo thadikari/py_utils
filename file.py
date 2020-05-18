@@ -1,3 +1,4 @@
+from itertools import zip_longest
 import csv
 import os
 
@@ -39,16 +40,18 @@ def filter_directories(_a, data_dir, sort_by_default=True):
     if _a.and_kw: dirs = kw_filter(dirs, all, _a.and_kw)
     if _a.or_kw: dirs = kw_filter(dirs, any, _a.or_kw)
 
+    ord = _a.order_dir
     if not dirs:
         print(f'No matching directories found in {data_dir}.')
         return dirs
     else:
-        if _a.order_dir:
-            strings = [f'[{order:g}] {dir}' for order,dir in zip(_a.order_dir,dirs)]
+        if ord:
+            ord = [oo for oo,_ in zip_longest(ord, dirs, fillvalue=-1)]
+            strings = [f'[{order:g}] {dir}' for order,dir in zip(ord,dirs)]
         else: strings = dirs
         print('Collected directories:', *strings, sep='\n')
 
-    if _a.order_dir: dirs = [dir for _,dir in sorted(zip(_a.order_dir, dirs))]
+    if ord: dirs = [dir for _,dir in sorted(zip(ord, dirs))]
     elif sort_by_default: dirs.sort()
     return dirs
 
