@@ -61,6 +61,7 @@ def get_best_time_scale(seconds, label=None):
     if seconds>3600*24 *5: div,unit = 3600*24, 'days'
     elif seconds>3600 *5: div,unit = 3600, 'hrs'
     elif seconds>60 *5: div,unit = 60, 'min'
-    else: div,unit = 1,'s'
+    elif seconds>1 *1: div,unit = 1, 's'
+    else: div,unit = 1e-3,'ms'
     if label: return div,unit, f'{label} ({unit})'
     else: return div,unit
