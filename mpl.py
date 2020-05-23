@@ -47,8 +47,12 @@ def bind_subplot_args(parser, ax_size_default=[4,3]):
     parser.add_argument('--ax_size', help='width, height per axis', type=float, nargs=2, default=ax_size_default)
 
 def get_subplot_config(count):
-    return {1:(1,1), 2:(1,2), 3:(1,3), 4:(2,2), 5:(2,3),
-            6:(2,3), 7:(3,3), 8:(3,3), 9:(3,3)}[count]
+    return {1:(1,1), 2:(1,2), 3:(1,3), 4:(2,2),
+            5:(2,3), 6:(2,3),
+            7:(3,3), 8:(3,3), 9:(3,3),
+            10:(3,4), 11:(3,4), 12:(3,4),
+            13:(4,4), 14:(4,4), 15:(4,4), 16:(4,4),
+           }[count]
 
 def get_subplot_axes(_a, count, fig=None):
     if fig is None: fig = plt.gcf()
