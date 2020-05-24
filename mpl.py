@@ -61,11 +61,18 @@ def get_subplot_axes(_a, count, fig=None):
     axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
     return axes, fig
 
-def get_best_time_scale(seconds, label=None):
-    if seconds>3600*24 *5: div,unit = 3600*24, 'days'
-    elif seconds>3600 *5: div,unit = 3600, 'hrs'
-    elif seconds>60 *5: div,unit = 60, 'min'
-    elif seconds>1 *1: div,unit = 1, 's'
-    else: div,unit = 1e-3,'ms'
-    if label: return div,unit, f'{label} ({unit})'
-    else: return div,unit
+def get_best_time_scale(seconds, label=''):
+    if seconds>3600*24 *5: div,unit,steps = 3600*24, 'days', [8.64]
+    elif seconds>3600 *5: div,unit,steps = 3600, 'hrs', [9]
+    elif seconds>60 *5: div,unit,steps = 60, 'min', [3,6,9]
+    elif seconds>1 *1: div,unit,steps = 1, 's', [1,2,3,4,5,10]
+    else: div,unit,steps = 1e-3, 'ms', [1,2,4,5,10]
+    return div,steps, f'{label} ({unit})'
+
+def set_best_time_scale(ax, seconds, label=''):
+    div,steps,label = get_best_time_scale(seconds, label)
+    fmt = plt.FuncFormatter(lambda x,pos:'%g'%(x/div))
+    loc = plt.MaxNLocator('auto', steps=steps)
+    ax.xaxis.set_major_formatter(fmt)
+    ax.xaxis.set_major_locator(loc)
+    return label
