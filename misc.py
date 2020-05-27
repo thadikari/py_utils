@@ -23,7 +23,7 @@ def setup_logger(logger=None, name='', log_level=logging.INFO): # INFO DEBUG
     logger.setLevel(log_level)
     ch = logging.StreamHandler()
     formatter = logging.Formatter(
-            '%(asctime)s---------------------|%(name)s|%(message)s',
+            '%(asctime)s|%(name)s|%(message)s',
             # logging.BASIC_FORMAT,
             "%H:%M:%S")
     ch.setFormatter(formatter)
