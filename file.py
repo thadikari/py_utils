@@ -34,9 +34,24 @@ class CSVFile:
         self.fp.close()
 
 
+def gen_unique_labels(dirs):
+    def inner(strings, token):
+        spls = [ss.split(token) for ss in strings]
+        sets = [set(spl) for spl in spls]
+        common = set().union(*sets)
+        common.intersection_update(*sets)
+        return ['_'.join(it for it in spl if it not in common) for spl in spls]
+
+    if len(dirs)>1:
+        return inner(inner(dirs, '__'), '_')
+    else:
+        return ['plot']
+
+
 def filter_directories(_a, data_dir, sort_by_default=True):
     dirs = next(os.walk(data_dir))[1]
     kw_filter = lambda nl_,f_,kwl: [n_ for n_ in nl_ if f_(kw in n_ for kw in kwl)]
+    if _a.not_kw: dirs = [dir for dir in dirs if all(kw not in dir for kw in _a.not_kw)]
     if _a.and_kw: dirs = kw_filter(dirs, all, _a.and_kw)
     if _a.or_kw: dirs = kw_filter(dirs, any, _a.or_kw)
 
@@ -58,4 +73,5 @@ def filter_directories(_a, data_dir, sort_by_default=True):
 def bind_dir_filter_args(parser):
     parser.add_argument('--and_kw', help='directory name AND filter: allows only if all present', default=[], type=str, nargs='*')
     parser.add_argument('--or_kw', help='directory name OR filter: allows if any is present', default=[], type=str, nargs='*')
+    parser.add_argument('--not_kw', help='directory name NOT filter: allows only if these are NOT present', default=[], type=str, nargs='*')
     parser.add_argument('--order_dir', help='re-order dir list, biggest at the front', type=float, nargs='+')
