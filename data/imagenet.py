@@ -21,7 +21,7 @@ def make_dataset(ds_name, dataset_args):
     splits, ds_info = tfds.load(ds_name, with_info=True)
 
     if 'imagenet_resized' in ds_name: preproc = lambda ds_:ds_
-    else: preproc = lambda ds_:ds_.map(preproc_func, num_parallel_calls=4)
+    else: preproc = lambda ds_:ds_.map(preproc_func, num_parallel_calls=16)
 
     dataset_args.update({'train_buffer':2**15, 'train_prefetch':64,
                          'test_buffer':2**10, 'test_prefetch':64})

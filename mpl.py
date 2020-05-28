@@ -41,11 +41,6 @@ def bind_fig_save_args(parser):
     exts_ = ['png', 'pdf']
     parser.add_argument('--ext', help='plot save extention', nargs='*', default=exts_, choices=exts_)
 
-
-def bind_subplot_args(parser, ax_size_default=[4,3]):
-    parser.add_argument('--subplot', help='subplot config: rows_cols', default=None, type=int, nargs=2)
-    parser.add_argument('--ax_size', help='width, height per axis', type=float, nargs=2, default=ax_size_default)
-
 def get_subplot_config(count):
     return {1:(1,1), 2:(1,2), 3:(1,3), 4:(2,2),
             5:(2,3), 6:(2,3),
@@ -55,10 +50,11 @@ def get_subplot_config(count):
             17:(4,5), 18:(4,5), 19:(4,5), 20:(4,5),
            }[count]
 
-def get_subplot_axes(_a, count, fig=None):
+def get_subplot_axes(ax_size, count, fig=None):
+    # ax_size = [width, height] per axis
     if fig is None: fig = plt.gcf()
-    rows_cols = _a.subplot if _a.subplot else get_subplot_config(count)
-    fig.set_size_inches(_a.ax_size[0]*rows_cols[1], _a.ax_size[1]*rows_cols[0])
+    rows_cols = get_subplot_config(count)
+    fig.set_size_inches(ax_size[0]*rows_cols[1], ax_size[1]*rows_cols[0])
     axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
     return axes, fig
 

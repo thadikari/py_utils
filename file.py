@@ -58,17 +58,21 @@ def filter_directories(_a, data_dir, sort_by_default=True):
     ord = _a.order_dir
     if not dirs:
         print(f'No matching directories found in {data_dir}.')
-        return dirs
-    else:
-        if ord:
-            ord = [oo for oo,_ in zip_longest(ord, dirs, fillvalue=-1)]
-            strings = [f'[{order:g}] {dir}' for order,dir in zip(ord,dirs)]
-        else: strings = dirs
-        print('Collected directories:', *strings, sep='\n')
+        return dirs, []
 
-    if ord: dirs = [dir for _,dir in sorted(zip(ord, dirs))]
-    elif sort_by_default: dirs.sort()
-    return dirs
+    labels = gen_unique_labels(dirs)
+    if ord:
+        ord = [o_ for o_,_ in zip_longest(ord, dirs, fillvalue=-1)]
+        strings = [f'[{o_:g}] {d_} >> [{l_}]' for o_,d_,l_ in zip(ord,dirs,labels)]
+        sor = lambda ll: [it for _,it in sorted(zip(ord,ll))]
+        dirs, labels = sor(dirs), sor(labels)
+    else:
+        strings = [f'{d_} >> [{l_}]' for d_,l_ in zip(dirs,labels)]
+        if sort_by_default:
+            dirs, labels = zip(*list(sorted(zip(dirs, labels))))
+
+    print('Collected directories:', *strings, sep='\n')
+    return dirs, labels
 
 def bind_dir_filter_args(parser):
     parser.add_argument('--and_kw', help='directory name AND filter: allows only if all present', default=[], type=str, nargs='*')
