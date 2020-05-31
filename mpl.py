@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from cycler import cycler
 import matplotlib
+import argparse
 
 
 #https://stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex
@@ -73,3 +74,13 @@ def set_best_time_scale(ax, seconds, label=''):
     ax.xaxis.set_major_formatter(fmt)
     ax.xaxis.set_major_locator(loc)
     return label
+
+# https://stackoverflow.com/questions/4194948/python-argparse-is-there-a-way-to-specify-a-range-in-nargs
+class AxSizeAction(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        l_ = len(values)
+        if not (l_==2 or l_==3):
+            msg=f'argument {self.dest} accepts only 2 or 3 arguments'
+            raise parser.error(msg)
+        if l_==3: values = (values[0]*values[2], values[1]*values[2])
+        setattr(args, self.dest, values)
