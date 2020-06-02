@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from cycler import cycler
+import numpy as np
 import matplotlib
 import argparse
 
@@ -33,7 +34,7 @@ def save_show_fig(args, plt, file_path):
         if len(args.ext)>1: ext_str = f'{{{ext_str}}}'
         print(f'Saving figure to {file_path}.{ext_str}')
         for ext in args.ext:
-            plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight')
+            plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight', pad_inches=args.pad_inches)
     if not args.silent: plt.show()
 
 def bind_fig_save_args(parser):
@@ -41,6 +42,7 @@ def bind_fig_save_args(parser):
     parser.add_argument('--save', help='save plots', action='store_true')
     exts_ = ['png', 'pdf']
     parser.add_argument('--ext', help='plot save extention', nargs='*', default=exts_, choices=exts_)
+    parser.add_argument('--pad_inches', type=float, default=None) # good choice is 0.03
 
 def get_subplot_config(count):
     return {1:(1,1), 2:(1,2), 3:(1,3), 4:(2,2),
@@ -59,21 +61,22 @@ def get_subplot_axes(ax_size, count, fig=None):
     axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
     return axes, fig
 
-def get_best_time_scale(seconds, label=''):
+def set_best_time_scale(ax, seconds, label=''):
     if seconds>3600*24 *5: div,unit,steps = 3600*24, 'days', [8.64]
     elif seconds>3600 *5: div,unit,steps = 3600, 'hrs', [9]
     elif seconds>60 *5: div,unit,steps = 60, 'min', [3,6,9]
     elif seconds>1 *1: div,unit,steps = 1, 's', [1,2,3,4,5,10]
     else: div,unit,steps = 1e-3, 'ms', [1,2,4,5,10]
-    return div,steps, f'{label} ({unit})'
 
-def set_best_time_scale(ax, seconds, label=''):
-    div,steps,label = get_best_time_scale(seconds, label)
     fmt = plt.FuncFormatter(lambda x,pos:'%g'%(x/div))
     loc = plt.MaxNLocator('auto', steps=steps)
+    # hack to get rid of MaxNLocator adding 10 to steps, which results in ugly hour ticks
+    # https://stackoverflow.com/questions/62148592/use-matplotlib-ticker-locator-to-put-ticks-only-if-location-is-divisible-by-a-gi
+    if unit=='hrs':
+        loc._extended_steps = loc._staircase(np.array([0.9, 1.8, 2.7, 3.6, 5.4, 7.2, 9]))
     ax.xaxis.set_major_formatter(fmt)
     ax.xaxis.set_major_locator(loc)
-    return label
+    return f'{label} ({unit})'
 
 # https://stackoverflow.com/questions/4194948/python-argparse-is-there-a-way-to-specify-a-range-in-nargs
 class AxSizeAction(argparse.Action):

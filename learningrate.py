@@ -18,9 +18,18 @@ class BaseSchedule:
 
     def to_str(self):
         _a = self.args
-        return f'{_a.lrate_schedule}_{_a.learning_rate:g}_' + self.to_str_(_a)
+        _e = self.to_str_(_a)
+        return f'{_a.lrate_schedule}_{_a.learning_rate:g}' + ('' if _e is None else f'_{_e}')
 
     def __call__(self, global_step): return self.get_rate_(self.args, global_step)
+
+
+@register
+class const(BaseSchedule):
+    @classmethod
+    def bind(cls, parser): pass
+    def to_str_(self, _a): return None
+    def get_rate_(self, _a, global_step): return _a.learning_rate
 
 
 @register
@@ -69,7 +78,7 @@ class period(BaseSchedule):
 
 
 def bind_learning_rates(parser):
-    parser.add_argument('--lrate_schedule', choices=schedules.keys(), default='linear')
+    parser.add_argument('--lrate_schedule', choices=schedules.keys(), default='const')
     parser.add_argument('--learning_rate', type=float, default=0.1)
     for sch in schedules.values(): sch.bind(parser)
     return parser
