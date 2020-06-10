@@ -1,6 +1,7 @@
 from itertools import zip_longest
 import csv
 import os
+import re
 
 
 def resolve_data_dir(proj_name):
@@ -34,7 +35,7 @@ class CSVFile:
         self.fp.close()
 
 
-def gen_unique_labels(dirs):
+def gen_unique_labels(long_names):
     def inner(strings, token):
         spls = [ss.split(token) for ss in strings]
         sets = [set(spl) for spl in spls]
@@ -42,40 +43,46 @@ def gen_unique_labels(dirs):
         common.intersection_update(*sets)
         return ['_'.join(it for it in spl if it not in common) for spl in spls]
 
-    if len(dirs)>1:
-        return inner(inner(dirs, '__'), '_')
+    if len(long_names)>1:
+        return inner(inner(long_names, '__'), '_')
     else:
         return ['plot']
 
-
-def filter_directories(_a, data_dir, sort_by_default=True):
+def filter_directories(_a, data_dir):
     dirs = next(os.walk(data_dir))[1]
     kw_filter = lambda nl_,f_,kwl: [n_ for n_ in nl_ if f_(kw in n_ for kw in kwl)]
     if _a.not_kw: dirs = [dir for dir in dirs if all(kw not in dir for kw in _a.not_kw)]
     if _a.and_kw: dirs = kw_filter(dirs, all, _a.and_kw)
     if _a.or_kw: dirs = kw_filter(dirs, any, _a.or_kw)
 
-    ord = _a.order_dir
-    if not dirs:
-        print(f'No matching directories found in {data_dir}.')
-        return dirs, []
+    if not dirs: print(f'No matching directories found in {data_dir}.')
+    else: print('Collected %d directories.'%len(dirs))
+    return dirs
 
-    labels = gen_unique_labels(dirs)
+# https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
+def naturalkey(text):
+    atoi = lambda tt: int(tt) if tt.isdigit() else tt
+    return [atoi(c) for c in re.split(r'(\d+)', text)]
+
+def reorder(_a, dir_labels):
+    strings = [f'{dir} >> [{lab}]' for dir,lab in dir_labels]
+    ord = _a.order
     if ord:
-        ord = [o_ for o_,_ in zip_longest(ord, dirs, fillvalue=-1)]
-        strings = [f'[{o_:g}] {d_} >> [{l_}]' for o_,d_,l_ in zip(ord,dirs,labels)]
-        sor = lambda ll: [it for _,it in sorted(zip(ord,ll))]
-        dirs, labels = sor(dirs), sor(labels)
-    else:
-        strings = [f'{d_} >> [{l_}]' for d_,l_ in zip(dirs,labels)]
-        if sort_by_default:
-            dirs, labels = zip(*list(sorted(zip(dirs, labels))))
+        ord = [o_ for o_,_ in zip_longest(ord, dir_labels, fillvalue=-1)]
+        strings = [f'[{o_:g}] {old}' for o_,old in zip(ord, strings)]
+        dir_labels.sort(key=dict(zip(dir_labels, ord)).get)
+    elif _a.natsort:
+        dir_labels.sort(key=lambda it: naturalkey(it[1]))
 
-    print('Collected directories:', *strings, sep='\n')
-    return dirs, labels
+    print(*strings, sep='\n')
+    if _a.reverse: dir_labels.reverse()
 
 def bind_dir_filter_args(parser):
     parser.add_argument('--and_kw', help='directory name AND filter: allows only if all present', default=[], type=str, nargs='*')
     parser.add_argument('--or_kw', help='directory name OR filter: allows if any is present', default=[], type=str, nargs='*')
     parser.add_argument('--not_kw', help='directory name NOT filter: allows only if these are NOT present', default=[], type=str, nargs='*')
-    parser.add_argument('--order_dir', help='re-order dir list, biggest at the front', type=float, nargs='+')
+
+def bind_reorder_args(parser):
+    parser.add_argument('--order', help='re-order dir list, biggest at the front', type=float, nargs='+')
+    parser.add_argument('--natsort', help='sort by natural order of labels', action='store_true')
+    parser.add_argument('--reverse', help='reverse after sorting', action='store_true')
