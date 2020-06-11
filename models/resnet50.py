@@ -345,6 +345,11 @@ class ResNet50(tf.keras.Model):
       if intermediates_dict is not None:
         intermediates_dict['block4'] = x
 
+    # hack to support keras batch norm updates
+    # https://github.com/tensorflow/tensorflow/issues/23873
+    # https://github.com/tensorflow/tensorflow/issues/19643
+    for it in self.updates: tf.add_to_collection(tf.GraphKeys.UPDATE_OPS, it)
+
     if self.include_top:
       return self.fc1000(self.flatten(x))
     elif self.global_pooling:
