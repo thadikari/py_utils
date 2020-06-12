@@ -7,7 +7,7 @@ class Registry:
     def keys(self): return list(self.dd.keys())
     def values(self): return list(self.dd.values())
     def items(self): return self.dd.items()
-    def get(self, key): return self.dd[key]
+    def get(self, key, default=None): return self.dd.get(key, default)
     def put(self, key, val):
         # print(self.keys())
         assert(key not in self.dd)
