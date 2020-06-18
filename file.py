@@ -35,7 +35,7 @@ class CSVFile:
         self.fp.close()
 
 
-def gen_unique_labels(long_names):
+def gen_unique_labels(long_names, tokens=['_', '__']):
     def inner(strings, token):
         spls = [ss.split(token) for ss in strings]
         sets = [set(spl) for spl in spls]
@@ -44,17 +44,22 @@ def gen_unique_labels(long_names):
         return ['_'.join(it for it in spl if it not in common) for spl in spls]
 
     if len(long_names)>1:
-        return inner(inner(long_names, '__'), '_')
+        for tk in tokens: long_names = inner(long_names, tk)
+        return long_names
     else:
         return ['plot']
 
-def filter_directories(_a, data_dir):
-    dirs = next(os.walk(data_dir))[1]
+def filter_strings(_a, dirs):
     kw_filter = lambda nl_,f_,kwl: [n_ for n_ in nl_ if f_(kw in n_ for kw in kwl)]
     if _a.not_kw: dirs = [dir for dir in dirs if all(kw not in dir for kw in _a.not_kw)]
     if _a.and_kw: dirs = kw_filter(dirs, all, _a.and_kw)
     if _a.or_kw: dirs = kw_filter(dirs, any, _a.or_kw)
+    if not dirs: print(f'No matches for', 'NOT:', _a.not_kw, ', AND:', _a.and_kw, ', OR:', _a.or_kw)
+    else: print('Collected:', *dirs, sep='\n')
+    return dirs
 
+def filter_directories(_a, data_dir):
+    dirs = filter_strings(_a, next(os.walk(data_dir))[1])
     if not dirs: print(f'No matching directories found in {data_dir}.')
     else: print('Collected %d directories.'%len(dirs))
     return dirs
@@ -77,10 +82,10 @@ def reorder(_a, dir_labels):
     print(*strings, sep='\n')
     if _a.reverse: dir_labels.reverse()
 
-def bind_dir_filter_args(parser):
-    parser.add_argument('--and_kw', help='directory name AND filter: allows only if all present', default=[], type=str, nargs='*')
-    parser.add_argument('--or_kw', help='directory name OR filter: allows if any is present', default=[], type=str, nargs='*')
-    parser.add_argument('--not_kw', help='directory name NOT filter: allows only if these are NOT present', default=[], type=str, nargs='*')
+def bind_filter_args(parser):
+    parser.add_argument('--and_kw', help='AND filter: allows only if all present', default=[], type=str, nargs='*')
+    parser.add_argument('--or_kw', help='OR filter: allows if any is present', default=[], type=str, nargs='*')
+    parser.add_argument('--not_kw', help='NOT filter: allows only if these are NOT present', default=[], type=str, nargs='*')
 
 def bind_reorder_args(parser):
     parser.add_argument('--order', help='re-order dir list, biggest at the front', type=float, nargs='+')

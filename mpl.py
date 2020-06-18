@@ -20,11 +20,11 @@ def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=No
         matplotlib.rcParams['ytick.labelsize'] = tick_size
     # https://stackoverflow.com/questions/6390393/matplotlib-make-tick-labels-font-size-smaller
 
-def fmt_ax(ax, xlab, ylab, leg, grid=1):
+def fmt_ax(ax, xlab, ylab, leg, grid=1, grid_kwargs={}):
     if leg: ax.legend(loc='best')
     if xlab: ax.set_xlabel(xlab)
     if ylab: ax.set_ylabel(ylab)
-    if grid: ax.grid(alpha=0.7, linestyle='-.', linewidth=0.3)
+    if grid: ax.grid(alpha=0.7, linestyle='-.', linewidth=0.3, **grid_kwargs)
     ax.tick_params(axis='both')
 
 def save_show_fig(args, plt, file_path):
