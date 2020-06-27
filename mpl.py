@@ -82,8 +82,11 @@ def set_best_time_scale(ax, seconds, label=''):
 class AxSizeAction(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
         l_ = len(values)
-        if not (l_==2 or l_==3):
-            msg=f'argument {self.dest} accepts only 2 or 3 arguments'
+        if not (0<l_<4):
+            msg=f'argument {self.dest} accepts only 1 or 2 or 3 arguments'
             raise parser.error(msg)
-        if l_==3: values = (values[0]*values[2], values[1]*values[2])
+        if l_==1: (v1,v2), mul = self.default, values[0]
+        if l_==2: (v1,v2), mul = values, 1.
+        if l_==3: v1,v2,mul = values
+        values = v1*mul,v2*mul
         setattr(args, self.dest, values)

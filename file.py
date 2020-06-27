@@ -4,21 +4,23 @@ import os
 import re
 
 
+pjoin, pabsl = os.path.join, os.path.abspath
+
 def resolve_data_dir(proj_name):
-    scratch = os.path.join(os.path.expanduser('~'), 'scratch')
-    return os.path.join(scratch, proj_name)
+    return pabsl(pjoin(os.path.expanduser('~'), 'scratch', proj_name))
 
 def resolve_data_dir_os(proj_name, extra=[]):
     if os.name == 'nt': # if windows
         curr_path = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(curr_path, '..', '..', 'data', *extra)
+        ret = pjoin(curr_path, '..', '..', 'data', *extra)
     else:
-        return resolve_data_dir(proj_name)
+        ret = resolve_data_dir(proj_name)
+    return pabsl(ret)
 
 
 class CSVFile:
     def __init__(self, file_name, work_dir=None, header=None, mode='w'):
-        path = file_name if work_dir is None else os.path.join(work_dir, file_name)
+        path = file_name if work_dir is None else pjoin(work_dir, file_name)
         self.fp = open(path, mode, newline='')
         self.csv = csv.writer(self.fp, delimiter=',')
         if header is not None: self.csv.writerow(header)
@@ -49,17 +51,17 @@ def gen_unique_labels(long_names, tokens=['_', '__']):
     else:
         return ['plot']
 
-def filter_strings(_a, dirs):
+def filter_strings(_a, dirs, log_else=True):
     kw_filter = lambda nl_,f_,kwl: [n_ for n_ in nl_ if f_(kw in n_ for kw in kwl)]
     if _a.not_kw: dirs = [dir for dir in dirs if all(kw not in dir for kw in _a.not_kw)]
     if _a.and_kw: dirs = kw_filter(dirs, all, _a.and_kw)
     if _a.or_kw: dirs = kw_filter(dirs, any, _a.or_kw)
     if not dirs: print(f'No matches for', 'NOT:', _a.not_kw, ', AND:', _a.and_kw, ', OR:', _a.or_kw)
-    else: print('Collected:', *dirs, sep='\n')
+    elif log_else: print('Collected:', *dirs, sep='\n')
     return dirs
 
 def filter_directories(_a, data_dir):
-    dirs = filter_strings(_a, next(os.walk(data_dir))[1])
+    dirs = filter_strings(_a, next(os.walk(data_dir))[1], log_else=False)
     if not dirs: print(f'No matching directories found in {data_dir}.')
     else: print('Collected %d directories.'%len(dirs))
     return dirs
