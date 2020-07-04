@@ -10,14 +10,15 @@ def make_dataset(name, dataset_args):
     test_size = ds_info.splits['test'].num_examples
     dataset_args.update({'train_buffer':train_size, 'train_prefetch':10,
                          'test_buffer':test_size, 'test_prefetch':10})
-    return Dataset(splits['train'], splits['test'], **dataset_args)
+    return Dataset(splits['train'], splits['test'], train_num_examples=train_size, **dataset_args)
 
 
 class Dataset:
-    def __init__(self, train_ds, test_ds, batch_size, test_size,
+    def __init__(self, train_ds, test_ds, batch_size, test_size, train_num_examples,
                  train_buffer, test_buffer, train_prefetch, test_prefetch,
                  num_workers=1, worker_index=0):
 
+        self.train_num_examples = train_num_examples
         train_ds = train_ds.shard(num_shards=num_workers, index=worker_index)\
                     .shuffle(train_buffer).repeat().batch(batch_size).prefetch(train_prefetch)
         test_ds = test_ds.shuffle(test_buffer).repeat().batch(test_size).prefetch(test_prefetch)

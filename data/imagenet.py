@@ -26,4 +26,6 @@ def make_dataset(ds_name, dataset_args):
     dataset_args.update({'train_buffer':2**15, 'train_prefetch':64,
                          'test_buffer':2**10, 'test_prefetch':64})
     # fig = tfds.show_examples(ds_info, test_ds)
-    return Dataset(preproc(splits['train']), preproc(splits['validation']), **dataset_args)
+    return Dataset(preproc(splits['train']), preproc(splits['validation']),
+                    train_num_examples=ds_info.splits['train'].num_examples,
+                    **dataset_args)

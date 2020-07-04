@@ -7,6 +7,10 @@ def create_plh():
     return placeholders
 
 
+def create_linear(feature):
+    feature_map = tf.contrib.layers.flatten(feature)
+    return tf.layers.dense(feature_map, 10, activation=None)
+
 def create_conv(feature):
     # Reshape feature to 4d tensor with 2nd and 3rd dimensions being
     # image width and height final dimension being the number of color channels.

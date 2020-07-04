@@ -1,3 +1,4 @@
+import numpy as np
 import argparse
 import os, sys
 import math
@@ -21,7 +22,7 @@ class BaseSchedule:
         _e = self.to_str_(_a)
         return f'{_a.lrate_schedule}_{_a.learning_rate:g}' + ('' if _e is None else f'_{_e}')
 
-    def __call__(self, global_step): return self.get_rate_(self.args, global_step)
+    def __call__(self, global_step, epoch): return self.get_rate_(self.args, global_step, epoch)
 
 
 @register
@@ -29,7 +30,7 @@ class const(BaseSchedule):
     @classmethod
     def bind(cls, parser): pass
     def to_str_(self, _a): return None
-    def get_rate_(self, _a, global_step): return _a.learning_rate
+    def get_rate_(self, _a, global_step, _): return _a.learning_rate
 
 
 @register
@@ -40,7 +41,7 @@ class linear(BaseSchedule):
 
     def to_str_(self, _a): return f'{_a.lrate_linear_end:g}'
 
-    def get_rate_(self, _a, global_step):
+    def get_rate_(self, _a, global_step, _):
         return _a.learning_rate - (_a.learning_rate-_a.lrate_linear_end)*global_step/self.total_steps
 
 
@@ -54,27 +55,30 @@ class exponential(BaseSchedule):
 
     def to_str_(self, _a): return f'{_a.lrate_exp_decay_steps:g}_{_a.lrate_exp_decay_rate:g}'
 
-    def get_rate_(self, _a, global_step):
+    def get_rate_(self, _a, global_step, _):
         val = global_step/_a.lrate_exp_decay_steps
         if _a.lrate_exp_staircase: val = math.floor(val)
         return _a.learning_rate*_a.lrate_exp_decay_rate**val
 
 
 @register
-class period(BaseSchedule):
+class epochs(BaseSchedule):
     @classmethod
     def bind(cls, parser):
-        parser.add_argument('--lrate_reduce_every', help='if one value reduce every N iterations, otherwise reduce at each value', type=int, nargs='*', default=[300])
-        parser.add_argument('--lrate_reduce_frac', help='reduce by this fraction', type=float, default=0.5)
+        parser.add_argument('--lrate_epochs_every', help='if one value, reduce every N epochs, otherwise reduce at each value', type=int, nargs='*', default=[10])
+        parser.add_argument('--lrate_epochs_frac', help='reduce by this fraction', type=float, default=0.5)
 
     def to_str_(self, _a):
-        joined = '-'.join(map(str, (_a.lrate_reduce_every)))
-        return f'{joined}_{_a.lrate_reduce_frac:g}'
+        joined = '-'.join(map(str, (_a.lrate_epochs_every)))
+        return f'{joined}_{_a.lrate_epochs_frac:g}'
 
-    def get_rate_(self, _a, global_step):
-        val = math.floor(global_step/_a.lrate_reduce_every[0])
-        if _a.lrate_exp_staircase: val = math.floor(val)
-        return _a.learning_rate*(_a.lrate_reduce_frac**(val))
+    def get_rate_(self, _a, _, epoch):
+        ell = _a.lrate_epochs_every
+        if len(ell)==1:
+            val = math.floor(epoch/ell[0])
+        else:
+            val = sum(np.array(ell) < epoch)
+        return _a.learning_rate*(_a.lrate_epochs_frac**(val))
 
 
 def bind_learning_rates(parser):
@@ -93,7 +97,7 @@ def plot_schedule():
     ax_ = plt.gca()
     def inner(name):
         sch = schedules.get(name)(_a, steps)
-        rates = [sch(step) for step in range(steps)]
+        rates = [sch(step, step/100) for step in range(steps)]
         ax_.plot(range(steps), rates, label=name)
         print(sch.to_str())
 
