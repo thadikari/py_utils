@@ -53,23 +53,30 @@ def merge_feed_dicts(*train_test_dicts_list):
     return ret_callers
 
 
-def compute_metrics_inner(logits, target, correct_pred):
+def compute_losses_ex(logits, target):
     num_classes = logits.shape[-1]
     target_1h = tf.one_hot(tf.cast(target, tf.int32), num_classes)
     losses = tf.losses.softmax_cross_entropy(target_1h, logits, reduction='none')
     sum_loss = tf.reduce_sum(losses)
     avg_loss = tf.reduce_mean(losses)
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name='accuracy')
-    return accuracy, sum_loss, avg_loss
+    return sum_loss, avg_loss
 
-def compute_metrics_topk(logits, target, k):
-    correct_pred = tf.nn.in_top_k(predictions=logits, targets=target, k=k)
-    return compute_metrics_inner(logits, target, correct_pred)
-
-def compute_metrics(logits, target):
-    correct_pred = tf.equal(tf.argmax(logits, 1), tf.cast(target, 'int64'))
-    return compute_metrics_inner(logits, target, correct_pred)
+def compute_losses(logits, target):
+    return compute_losses_ex(logits, target)[1]
 
 
-def l2_reg_loss(var_list):
-    return tf.add_n([tf.nn.l2_loss(v) for v in var_list])
+def _accuracy(correct_pred):
+    return tf.reduce_mean(tf.cast(correct_pred, tf.float32), name='accuracy')
+
+def compute_accuracy(logits, target):
+    return _accuracy(tf.equal(tf.argmax(logits, 1), tf.cast(target, 'int64')))
+
+def compute_accuracy_topk(logits, target, k):
+    return _accuracy(tf.nn.in_top_k(predictions=logits, targets=target, k=k))
+
+
+def compute_metrics_ex(logits, target): # returns accuracy, sum_loss, avg_loss
+    return compute_accuracy(logits, target), (*compute_losses_ex(logits, target))
+
+def compute_metrics(logits, target): # returns accuracy, avg_loss
+    return compute_accuracy(logits, target), compute_losses(logits, target)
