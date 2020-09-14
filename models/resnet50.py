@@ -1,5 +1,7 @@
 '''
 copied from: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/eager/benchmarks/resnet50/resnet50.py
+
+Number of parameters in following model: 25,583,592
 '''
 
 

@@ -4,6 +4,10 @@ import tensorflow as tf
 Disclaimer:
 The following code is taken from: https://github.com/Ecohnoch/tensorflow-cifar100/blob/master/model/resnet34.py
 and slightly modified.
+
+Number of parameters in following model:
+    resnet18: 12,596,388
+    resnet34: 22,704,548
 '''
 
 

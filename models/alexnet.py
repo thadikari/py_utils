@@ -1,5 +1,9 @@
 import tensorflow as tf
 
+'''
+Number of parameters in following model: 62,376,970
+'''
+
 
 def create_plh(with_data=True):
     keep_prob = tf.placeholder(tf.float32, name='keep_prob')

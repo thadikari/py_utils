@@ -1,6 +1,8 @@
 '''
 code taken from: https://github.com/arberzela/ImageNet32-tensorflow/blob/master/WRN_main.py
 TF implementation of results in: https://arxiv.org/pdf/1707.08819.pdf
+
+Number of parameters in following model: imagenet32 - 1,595,320
 '''
 
 import tensorflow as tf

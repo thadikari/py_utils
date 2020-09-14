@@ -1,5 +1,8 @@
 import tensorflow as tf
 
+'''
+Number of parameters in following model: 3,274,634
+'''
 
 def create_plh():
     placeholders = tf.placeholder(tf.float32, [None, 28, 28], name='image'),\
