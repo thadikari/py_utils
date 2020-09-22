@@ -51,15 +51,20 @@ def get_subplot_config(count):
             10:(3,4), 11:(3,4), 12:(3,4),
             13:(4,4), 14:(4,4), 15:(4,4), 16:(4,4),
             17:(4,5), 18:(4,5), 19:(4,5), 20:(4,5),
+            21:(4,6), 22:(4,6), 23:(4,6), 24:(4,6),
            }[count]
 
-def get_subplot_axes(ax_size, count, fig=None):
+def get_subplot_axes(ax_size, count, rows_cols=None, subplots_kwargs=None):
     # ax_size = [width, height] per axis
-    if fig is None: fig = plt.gcf()
-    rows_cols = get_subplot_config(count)
+    # if fig is None: fig = plt.gcf()
+    if rows_cols is None or rows_cols[0]*rows_cols[1]<count:
+        rows_cols = get_subplot_config(count)
+    if subplots_kwargs is None: subplots_kwargs = {}
+    fig, axes = plt.subplots(*rows_cols, **subplots_kwargs)
     fig.set_size_inches(ax_size[0]*rows_cols[1], ax_size[1]*rows_cols[0])
-    axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
-    return axes, fig
+    # axes = [fig.add_subplot(*rows_cols,idx+1) for idx in range(count)]
+    axes = axes.flatten() if isinstance(axes, np.ndarray) else [axes]
+    return axes[:count], fig
 
 def set_best_time_scale(ax, seconds, label=''):
     if seconds>3600*24 *5: div,unit,steps = 3600*24, 'days', [8.64]
