@@ -5,8 +5,17 @@ import matplotlib
 import argparse
 
 
+def bind_init_args(parser):
+    parser.add_argument('--font_size', default=20, type=int)
+    parser.add_argument('--legend_font_size', default=18, type=int)
+    parser.add_argument('--tick_size', default=16, type=int)
+
 #https://stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex
-def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=None):
+def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=None, args=None):
+    if args:
+        font_size = args.font_size
+        legend_font_size = args.legend_font_size
+        tick_size = args.tick_size
     custom_cycler = (cycler(color=['r', 'b', 'g', 'y', 'k', 'm', 'c']*4) +
                      cycler(linestyle=['-', '--', ':', '-.']*7))
     if modify_cycler: plt.rc('axes', prop_cycle=custom_cycler)
@@ -27,8 +36,8 @@ def fmt_ax(ax, xlab, ylab, leg, grid=1, grid_kwargs={}):
     if grid: ax.grid(alpha=0.7, linestyle='-.', linewidth=0.3, **grid_kwargs)
     ax.tick_params(axis='both')
 
-def save_show_fig(args, plt, file_path):
-    plt.tight_layout()
+def save_show_fig(args, plt, file_path, tight_layout=True):
+    if tight_layout: plt.tight_layout()
     if args.save:
         ext_str = ','.join(args.ext)
         if len(args.ext)>1: ext_str = f'{{{ext_str}}}'

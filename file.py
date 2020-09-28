@@ -71,18 +71,18 @@ def naturalkey(text):
     atoi = lambda tt: int(tt) if tt.isdigit() else tt
     return [atoi(c) for c in re.split(r'(\d+)', text)]
 
-def reorder(_a, dir_labels):
-    strings = [f'{dir} >> [{lab}]' for dir,lab in dir_labels]
+def reorder(_a, bundles, keyf):
+    strings = ['%s >> [%s]'%(bun,keyf(bun)) for bun in bundles]
     ord = _a.order
     if ord:
-        ord = [o_ for o_,_ in zip_longest(ord, dir_labels, fillvalue=-1)]
+        ord = [o_ for o_,_ in zip_longest(ord, bundles, fillvalue=-1)]
         strings = [f'[{o_:g}] {old}' for o_,old in zip(ord, strings)]
-        dir_labels.sort(key=dict(zip(dir_labels, ord)).get)
+        bundles.sort(key=dict(zip(bundles, ord)).get)
     elif _a.natsort:
-        dir_labels.sort(key=lambda it: naturalkey(it[1]))
+        bundles.sort(key=lambda it: naturalkey(keyf(it)))
 
     print(*strings, sep='\n')
-    if _a.reverse: dir_labels.reverse()
+    if _a.reverse: bundles.reverse()
 
 def bind_filter_args(parser):
     parser.add_argument('--and_kw', help='AND filter: allows only if all present', default=[], type=str, nargs='*')
