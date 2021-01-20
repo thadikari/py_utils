@@ -36,6 +36,17 @@ def fmt_ax(ax, xlab, ylab, leg, grid=1, grid_kwargs={}):
     if grid: ax.grid(alpha=0.7, linestyle='-.', linewidth=0.3, **grid_kwargs)
     ax.tick_params(axis='both')
 
+def relim_axis(ax, xl=None, xu=None, yl=None, yu=None):
+    lim = lambda idx, xv_, yv_: (xv_[idx], yv_[idx])
+    for lin in ax.get_lines():
+        xv, yv = lin.get_xdata(), lin.get_ydata()
+        if not xl is None: xv, yv = lim(xv>=xl, xv, yv)
+        if not xu is None: xv, yv = lim(xv<=xu, xv, yv)
+        if not yl is None: xv, yv = lim(yv>=yl, xv, yv)
+        if not yu is None: xv, yv = lim(yv<=yu, xv, yv)
+        lin.set_xdata(xv), lin.set_ydata(yv)
+    ax.relim(), ax.autoscale_view()
+
 def save_show_fig(args, plt, file_path, tight_layout=True):
     if tight_layout: plt.tight_layout()
     if args.save:

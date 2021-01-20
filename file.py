@@ -19,8 +19,8 @@ def resolve_data_dir_os(proj_name, extra=[]):
 
 
 class CSVFile:
-    def __init__(self, file_name, work_dir=None, header=None, mode='w'):
-        path = file_name if work_dir is None else pjoin(work_dir, file_name)
+    def __init__(self, file_name, dir=None, header=None, mode='w'):
+        path = file_name if dir is None else pjoin(dir, file_name)
         self.fp = open(path, mode, newline='')
         self.csv = csv.writer(self.fp, delimiter=',')
         if header is not None: self.csv.writerow(header)
@@ -36,6 +36,9 @@ class CSVFile:
         self.fp.flush()
         self.fp.close()
 
+def make_csv(name, dir, header):
+    if not os.path.exists(dir): os.makedirs(dir)
+    return CSVFile(name, dir, header=header)
 
 def gen_unique_labels(long_names, tokens=['_', '__']):
     def inner(strings, token):
