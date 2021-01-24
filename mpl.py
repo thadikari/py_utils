@@ -36,15 +36,35 @@ def fmt_ax(ax, xlab, ylab, leg, grid=1, grid_kwargs={}):
     if grid: ax.grid(alpha=0.7, linestyle='-.', linewidth=0.3, **grid_kwargs)
     ax.tick_params(axis='both')
 
+
+# https://stackoverflow.com/questions/51323505/how-to-make-relim-and-autoscale-in-a-scatter-plot
+def update_datalim(ax, scatter):
+    #ax.ignore_existing_data_limits = True
+    ax.update_datalim(scatter.get_datalim(ax.transData))
+    ax.autoscale_view()
+
+def get_data_setter(ax, obj):
+    if isinstance(obj, matplotlib.collections.PathCollection):
+        setter = lambda xv, yv: (obj.set_offsets(np.array([xv, yv]).T), update_datalim(ax, obj))
+        return obj.get_offsets().T, setter
+    elif isinstance(obj, matplotlib.lines.Line2D):
+        setter = lambda xv, yv: (obj.set_xdata(xv), obj.set_ydata(yv))
+        return (obj.get_xdata(), obj.get_ydata()), setter
+    else: return None
+
 def relim_axis(ax, xl=None, xu=None, yl=None, yu=None):
     lim = lambda idx, xv_, yv_: (xv_[idx], yv_[idx])
-    for lin in ax.get_lines():
-        xv, yv = lin.get_xdata(), lin.get_ydata()
+    ax.ignore_existing_data_limits = True
+    for obj in ax.get_children(): # get_lines also works if line plot
+        ret = get_data_setter(ax, obj)
+        if ret is None: continue
+        (xv, yv), setter = ret
         if not xl is None: xv, yv = lim(xv>=xl, xv, yv)
         if not xu is None: xv, yv = lim(xv<=xu, xv, yv)
         if not yl is None: xv, yv = lim(yv>=yl, xv, yv)
         if not yu is None: xv, yv = lim(yv<=yu, xv, yv)
-        lin.set_xdata(xv), lin.set_ydata(yv)
+        setter(xv, yv)
+        ax.ignore_existing_data_limits = False
     ax.relim(), ax.autoscale_view()
 
 def save_show_fig(args, plt, file_path, tight_layout=True):
@@ -55,10 +75,9 @@ def save_show_fig(args, plt, file_path, tight_layout=True):
         print(f'Saving figure to {file_path}.{ext_str}')
         for ext in args.ext:
             plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight', pad_inches=args.pad_inches)
-    if not args.silent: plt.show()
+    else: plt.show()
 
 def bind_fig_save_args(parser):
-    parser.add_argument('--silent', help='do not show plots', action='store_true')
     parser.add_argument('--save', help='save plots', action='store_true')
     exts_ = ['png', 'pdf']
     parser.add_argument('--ext', help='plot save extention', nargs='*', default=exts_, choices=exts_)
