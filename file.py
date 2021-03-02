@@ -1,4 +1,6 @@
+from collections import OrderedDict
 from itertools import zip_longest
+import argparse
 import csv
 import os
 import re
@@ -64,6 +66,9 @@ def filter_strings(_a, dirs, log_else=True):
     return dirs
 
 def filter_directories(_a, data_dir):
+    if not os.path.isdir(data_dir):
+        print(f'Not a directory: {data_dir}')
+        return []
     dirs = filter_strings(_a, next(os.walk(data_dir))[1], log_else=False)
     if not dirs: print(f'No matching directories found in {data_dir}.')
     else: print('Collected %d directories.'%len(dirs))
@@ -74,18 +79,12 @@ def naturalkey(text):
     atoi = lambda tt: int(tt) if tt.isdigit() else tt
     return [atoi(c) for c in re.split(r'(\d+)', text)]
 
-def reorder(_a, bundles, keyf):
-    strings = ['%s >> [%s]'%(bun,keyf(bun)) for bun in bundles]
-    ord = _a.order
-    if ord:
-        ord = [o_ for o_,_ in zip_longest(ord, bundles, fillvalue=-1)]
-        strings = [f'[{o_:g}] {old}' for o_,old in zip(ord, strings)]
-        bundles.sort(key=dict(zip(bundles, ord)).get)
-    elif _a.natsort:
-        bundles.sort(key=lambda it: naturalkey(keyf(it)))
-
-    print(*strings, sep='\n')
+def reorder(_a, bundles, keyf, zorderf=None):
+    bundles.sort(key=lambda it: naturalkey(keyf(it)))
     if _a.reverse: bundles.reverse()
+    if not zorderf is None: bundles.sort(key=zorderf)
+    strings = ['%s >> [%s]'%(bun,keyf(bun)) for bun in bundles]
+    print(*strings, sep='\n')
 
 def bind_filter_args(parser):
     parser.add_argument('--and_kw', help='AND filter: allows only if all present', default=[], type=str, nargs='*')
@@ -93,6 +92,18 @@ def bind_filter_args(parser):
     parser.add_argument('--not_kw', help='NOT filter: allows only if these are NOT present', default=[], type=str, nargs='*')
 
 def bind_reorder_args(parser):
-    parser.add_argument('--order', help='re-order dir list, biggest at the front', type=float, nargs='+')
-    parser.add_argument('--natsort', help='sort by natural order of labels', action='store_true')
+    # parser.add_argument('--natsort', help='sort by natural order of labels', action='store_true')
     parser.add_argument('--reverse', help='reverse after sorting', action='store_true')
+
+class PropertyAction(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        l_ = len(values)
+        if not (2<=l_<=3):
+            msg=f'argument {self.dest} accepts only 2-4 arguments: name, label, [fmt]'
+            raise parser.error(msg)
+        ll = [None]*3
+        ll[:len(values)] = values
+        val_dict = getattr(args, self.dest)
+        if val_dict is None: val_dict = OrderedDict()
+        val_dict[ll[0]] = ll[1:]
+        setattr(args, self.dest, val_dict)
