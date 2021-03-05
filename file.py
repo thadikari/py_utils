@@ -94,6 +94,7 @@ def bind_filter_args(parser):
 def bind_reorder_args(parser):
     # parser.add_argument('--natsort', help='sort by natural order of labels', action='store_true')
     parser.add_argument('--reverse', help='reverse after sorting', action='store_true')
+    parser.add_argument('--property', action=PropertyAction, nargs='+', default={})
 
 class PropertyAction(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
@@ -107,3 +108,23 @@ class PropertyAction(argparse.Action):
         if val_dict is None: val_dict = OrderedDict()
         val_dict[ll[0]] = ll[1:]
         setattr(args, self.dest, val_dict)
+
+class BundleBase:
+    def __init__(self, _a, dir, label):
+        self.dir = dir
+        props = _a.property.get(dir, [None, None])
+        self.label, self.fmt = props
+        self.zorder = list(_a.property.keys()).index(dir) if dir in _a.property else -1
+        if self.label is None: self.label = label
+
+    def __str__(self): return self.dir
+
+def load_dirs(_a, data_dir, fac):
+    dirs = filter_directories(_a, _a.data_dir)
+    if not dirs: exit()
+
+    labels = gen_unique_labels(dirs)
+    bundles = [fac(_a, *args) for args in zip(dirs, labels)]
+    reorder(_a, bundles, lambda it: it.label, lambda it: it.zorder)
+    for root in bundles: root.load()
+    return bundles
