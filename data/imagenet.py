@@ -23,8 +23,8 @@ def make_dataset(ds_name, dataset_args):
     if 'imagenet_resized' in ds_name: preproc = lambda ds_:ds_
     else: preproc = lambda ds_:ds_.map(preproc_func, num_parallel_calls=16)
 
-    dataset_args.update({'train_buffer':2**15, 'train_prefetch':64,
-                         'test_buffer':2**10, 'test_prefetch':64})
+    dataset_args.update({'train_buffer':2**16, 'train_prefetch':64,
+                         'test_buffer':2**16, 'test_prefetch':64})
     # fig = tfds.show_examples(ds_info, test_ds)
     return Dataset(preproc(splits['train']), preproc(splits['validation']),
                     train_num_examples=ds_info.splits['train'].num_examples,
