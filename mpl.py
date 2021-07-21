@@ -10,6 +10,10 @@ def bind_init_args(parser):
     parser.add_argument('--legend_font_size', default=18, type=int)
     parser.add_argument('--tick_size', default=16, type=int)
 
+def set_math_font():
+    matplotlib.rcParams['mathtext.fontset'] = 'stix'
+    matplotlib.rcParams['font.family'] = 'STIXGeneral'
+
 #https://stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex
 def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=None, args=None):
     if args:
@@ -19,8 +23,7 @@ def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=No
     custom_cycler = (cycler(color=['r', 'b', 'g', 'y', 'k', 'm', 'c']*4) +
                      cycler(linestyle=['-', '--', ':', '-.']*7))
     if modify_cycler: plt.rc('axes', prop_cycle=custom_cycler)
-    matplotlib.rcParams['mathtext.fontset'] = 'stix'
-    matplotlib.rcParams['font.family'] = 'STIXGeneral'
+    set_math_font()
     if font_size: matplotlib.rcParams.update({'font.size': font_size})
     if legend_font_size: plt.rc('legend', fontsize=legend_font_size)    # legend fontsize
     # https://stackoverflow.com/questions/3899980/how-to-change-the-font-size-on-a-matplotlib-plot
