@@ -10,9 +10,15 @@ def bind_init_args(parser):
     parser.add_argument('--legend_font_size', default=18, type=int)
     parser.add_argument('--tick_size', default=16, type=int)
 
-def set_math_font():
+def set_math_font(remove_type3=False):
     matplotlib.rcParams['mathtext.fontset'] = 'stix'
     matplotlib.rcParams['font.family'] = 'STIXGeneral'
+
+    # Manuscript Central does not support Type 3 PostScript
+    # Remove as follows, see http://phyletica.org/matplotlib-fonts/
+    if remove_type3:
+        matplotlib.rcParams['pdf.fonttype'] = 42
+        matplotlib.rcParams['ps.fonttype'] = 42
 
 #https://stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex
 def init(font_size=None, legend_font_size=None, modify_cycler=True, tick_size=None, args=None):
@@ -70,14 +76,14 @@ def relim_axis(ax, xl=None, xu=None, yl=None, yu=None):
         ax.ignore_existing_data_limits = False
     ax.relim(), ax.autoscale_view()
 
-def save_show_fig(args, plt, file_path, tight_layout=True):
+def save_show_fig(args, plt, file_path, tight_layout=True, transparent=False):
     if tight_layout: plt.tight_layout()
     if args.save:
         ext_str = ','.join(args.ext)
         if len(args.ext)>1: ext_str = f'{{{ext_str}}}'
         print(f'Saving figure to {file_path}.{ext_str}')
         for ext in args.ext:
-            plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight', pad_inches=args.pad_inches)
+            plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight', pad_inches=args.pad_inches, transparent=transparent)
     else: plt.show()
 
 def bind_fig_save_args(parser):

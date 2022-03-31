@@ -11,13 +11,15 @@ pjoin, pabsl = os.path.join, os.path.abspath
 def resolve_data_dir(proj_name):
     return pabsl(pjoin(os.path.expanduser('~'), 'scratch', proj_name))
 
-def resolve_data_dir_os(proj_name, extra=[]):
+def resolve_data_dir_os(proj_name, extra=[], create_dir=False):
     if os.name == 'nt': # if windows
         curr_path = os.path.dirname(os.path.realpath(__file__))
         ret = pjoin(curr_path, '..', '..', 'data', *extra)
     else:
         ret = resolve_data_dir(proj_name)
-    return pabsl(ret)
+    dir_path = pabsl(ret)
+    if create_dir and not os.path.exists(dir_path): os.makedirs(dir_path)
+    return dir_path
 
 
 class CSVFile:
