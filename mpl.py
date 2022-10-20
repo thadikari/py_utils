@@ -102,9 +102,11 @@ def get_subplot_config(count):
             21:(4,6), 22:(4,6), 23:(4,6), 24:(4,6),
            }[count]
 
-def get_subplot_axes(ax_size, count, rows_cols=None, subplots_kwargs=None):
+def get_subplot_axes(ax_size, count=None, rows_cols=None, subplots_kwargs=None):
     # ax_size = [width, height] per axis
     # if fig is None: fig = plt.gcf()
+    if count is None and rows_cols is None: raise('Incomplete arguments')
+    if count is None: count = rows_cols[0]*rows_cols[1]
     if rows_cols is None or rows_cols[0]*rows_cols[1]<count:
         rows_cols = get_subplot_config(count)
     if subplots_kwargs is None: subplots_kwargs = {}
