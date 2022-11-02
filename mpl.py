@@ -86,6 +86,29 @@ def save_show_fig(args, plt, file_path, tight_layout=True, transparent=False):
             plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight', pad_inches=args.pad_inches, transparent=transparent)
     else: plt.show()
 
+def bind_plotting_args(parser):
+    parser.add_argument('--xmax', type=float)
+    parser.add_argument('--xmin', type=float)
+    parser.add_argument('--ymin', type=float)
+    parser.add_argument('--ymax', type=float)
+    parser.add_argument('--ylog', action='store_true')
+    parser.add_argument('--hidex', action='store_true')
+    parser.add_argument('--hide_ylabel', action='store_true')
+    parser.add_argument('--nolegend', action='store_true')
+    parser.add_argument('--ax_size', help='width, height {scale} per axis', type=float, nargs='+', action=AxSizeAction, default=[8,5])
+    parser.add_argument('--imprv_percentage', type=float, nargs=4, action='append')
+    parser.add_argument('--font_size_imprv', type=int, default=20)
+    parser.add_argument('--title', type=str)
+
+def plot_improvement(args, ax):
+    # plot vertical double arrow lines with an percentage annotation
+    if not args.imprv_percentage is None:
+        for xval,bot,top,sgn in args.imprv_percentage:
+            imprv = int(100*(top-bot)/top)
+            ax.annotate(s='', xy=(xval, bot), xytext=(xval, top), arrowprops=dict(arrowstyle='<->'))
+            ha = 'right' if sgn<0 else 'left'
+            ax.annotate(f'{imprv}%', xy=(xval+np.sign(sgn)*0.2, (top+bot)/2), ha=ha, va='center', size=args.font_size_imprv)
+
 def bind_fig_save_args(parser):
     parser.add_argument('--save', help='save plots', action='store_true')
     exts_ = ['png', 'pdf']
