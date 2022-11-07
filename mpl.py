@@ -86,11 +86,21 @@ def save_show_fig(args, plt, file_path, tight_layout=True, transparent=False):
             plt.savefig('%s.%s'%(file_path,ext), bbox_inches='tight', pad_inches=args.pad_inches, transparent=transparent)
     else: plt.show()
 
+def set_ax_props(args, ax):
+    if args.hide_ylabel: ax.set_ylabel(None)
+    if args.xlog: ax.set_xscale('log')
+    if args.ylog: ax.set_yscale('log')
+    if not args.xmin is None: ax.set_xlim(left=args.xmin)
+    if not args.xmax is None: ax.set_xlim(right=args.xmax)
+    if not args.ymin is None: ax.set_ylim(bottom=args.ymin)
+    if not args.ymax is None: ax.set_ylim(top=args.ymax)
+
 def bind_plotting_args(parser):
     parser.add_argument('--xmax', type=float)
     parser.add_argument('--xmin', type=float)
     parser.add_argument('--ymin', type=float)
     parser.add_argument('--ymax', type=float)
+    parser.add_argument('--xlog', action='store_true')
     parser.add_argument('--ylog', action='store_true')
     parser.add_argument('--hidex', action='store_true')
     parser.add_argument('--hide_ylabel', action='store_true')
