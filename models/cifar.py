@@ -1,7 +1,13 @@
 import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.layers import Dense
 
 '''
-Number of parameters in following model: 4,607,178
+Number of parameters in following model (create_conv10): 4,607,178
 '''
 
 def create_plh(with_data=True):
@@ -73,3 +79,41 @@ def create_conv10(x, keep_prob, flag_training):
     # full4 = tf.layers.batch_normalization(full4, training=flag_training)
 
     return tf.contrib.layers.fully_connected(inputs=full3, num_outputs=10, activation_fn=None)
+
+
+'''
+Code sources:
+https://github.com/uber-research/deconstructing-lottery-tickets/blob/dbad201f77c7d1423569f0310971926be91d8856/network_builders.py
+https://www.tensorflow.org/guide/keras/sequential_model
+https://pyimagesearch.com/2019/10/28/3-ways-to-create-a-keras-model-with-tensorflow-2-0-sequential-functional-and-model-subclassing/
+
+Model references:
+Figure 2 in "THE LOTTERY TICKET HYPOTHESIS: FINDING SPARSE, TRAINABLE NEURAL NETWORKS"
+Table 1 in "What’s Hidden in a Randomly Weighted Neural Network?"
+'''
+
+glorot_normal = tf.keras.initializers.glorot_normal()
+
+def create_model(convs, fcs):
+    layers = []
+
+    for dim in convs:
+        layers.append(Conv2D(dim, 3, kernel_initializer=glorot_normal, padding='same'))
+        layers.append(Activation('relu'))
+        layers.append(Conv2D(dim, 3, kernel_initializer=glorot_normal, padding='same'))
+        layers.append(Activation('relu'))
+        layers.append(MaxPooling2D((2, 2), (2, 2)))
+
+    layers.append(Flatten())
+
+    for dim in fcs:
+        layers.append(Dense(dim, kernel_initializer=glorot_normal, activation='relu'))
+
+    return Sequential(layers)
+
+create_cifar = lambda convs: create_model(convs, [256, 256, 10])
+conv2 = lambda: create_cifar([64, ])
+conv4 = lambda: create_cifar([64, 128])
+conv6 = lambda: create_cifar([64, 128, 256])
+conv8 = lambda: create_cifar([64, 128, 256, 512])
+conv10= lambda: create_cifar([64, 128, 256, 512, 1024])
