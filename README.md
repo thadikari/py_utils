@@ -8,6 +8,7 @@
   ```
 
 * Download datasets:
+  May need to delete the directories in `~/tensorflow_datasets/` before following commands.
   ```
   python -c 'import tensorflow_datasets as tfds; tfds.load("mnist")'
   python -c 'import tensorflow_datasets as tfds; tfds.load("fashion_mnist")'
