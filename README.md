@@ -1,4 +1,12 @@
-# Download datasets
+## Adding this repository as a submodule
+
++ `git submodule add git@github.com:thadikari/utilities.git`
+
++ `git submodule update --init --recursive`
+
+
+
+## Download Tensorflow datasets
 
 * Prepare environment:
   ```
