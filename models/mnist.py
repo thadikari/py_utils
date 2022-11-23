@@ -11,8 +11,15 @@ def create_plh():
 
 
 def create_conv(feature):
-    # Reshape feature to 4d tensor with 2nd and 3rd dimensions being
-    # image width and height final dimension being the number of color channels.
+    '''
+    Reshape feature to 4d tensor with 2nd and 3rd dimensions being
+    image width and height final dimension being the number of color channels.
+
+    Per https://www.tensorflow.org/api_docs/python/tf/compat/v1/layers/dense and
+    https://www.tensorflow.org/api_docs/python/tf/compat/v1/get_variable, 
+    the glorot_uniform_initializer is used to init tf.compat.v1.layers.dense.
+    '''
+
     layers = tf.layers
     feature = tf.reshape(feature, [-1, 28, 28, 1])
 

@@ -58,6 +58,10 @@ def create_conv10(x, keep_prob, flag_training):
     # 9
     flat = tf.contrib.layers.flatten(conv4_bn)
 
+    '''
+    Per https://docs.w3cub.com/tensorflow~python/tf/contrib/layers/fully_connected,
+    the layers.fully_connected use initializers.xavier_initializer() for init.
+    '''
     # 10
     full1 = tf.contrib.layers.fully_connected(inputs=flat, num_outputs=128, activation_fn=tf.nn.relu)
     full1 = tf.nn.dropout(full1, keep_prob)

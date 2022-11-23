@@ -61,24 +61,40 @@ class exponential(BaseSchedule):
         return _a.learning_rate*_a.lrate_exp_decay_rate**val
 
 
-@register
-class epochs(BaseSchedule):
+class every_n(BaseSchedule):
     @classmethod
     def bind(cls, parser):
-        parser.add_argument('--lrate_epochs_every', help='if one value, reduce every N epochs, otherwise reduce at each value', type=int, nargs='*', default=[10])
-        parser.add_argument('--lrate_epochs_frac', help='reduce by this fraction', type=float, default=0.5)
+        parser.add_argument(f'--lrate_{cls.key}_every', help=f'if one value, reduce every N {cls.key}, otherwise reduce at each value', type=int, nargs='*', default=[cls.default])
+        parser.add_argument(f'--lrate_{cls.key}_frac', help='reduce by this fraction', type=float, default=0.5)
 
     def to_str_(self, _a):
-        joined = '-'.join(map(str, (_a.lrate_epochs_every)))
-        return f'{joined}_{_a.lrate_epochs_frac:g}'
+        dd = vars(_a)
+        joined = '-'.join(map(str, (dd.get(f'lrate_{self.key}_every'))))
+        frac = dd.get(f'lrate_{self.key}_frac')
+        return f'{joined}_{frac:g}'
 
-    def get_rate_(self, _a, _, epoch):
-        ell = _a.lrate_epochs_every
+    def get_rate_common(self, _a, current, ell, frac):
         if len(ell)==1:
-            val = math.floor(epoch/ell[0])
+            val = math.floor(current/ell[0])
         else:
-            val = sum(np.array(ell) < epoch)
-        return _a.learning_rate*(_a.lrate_epochs_frac**(val))
+            val = sum(np.array(ell) < current)
+        return _a.learning_rate*(frac**(val))
+
+
+@register
+class epochs(every_n):
+    key = 'epochs'
+    default = 10
+    def get_rate_(self, _a, _, epoch):
+        return self.get_rate_common(_a, epoch, _a.lrate_epochs_every, _a.lrate_epochs_frac)
+
+
+@register
+class steps(every_n):
+    key = 'steps'
+    default = 10000
+    def get_rate_(self, _a, global_step, _):
+        return self.get_rate_common(_a, global_step, _a.lrate_steps_every, _a.lrate_steps_frac)
 
 
 def bind_learning_rates(parser):
