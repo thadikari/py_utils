@@ -33,6 +33,7 @@
 
 * Some downloading and unpacking errors can be fixed by prefixing `CUDA_VISIBLE_DEVICES=""` to download commands. On `Cedar` login nodes the GPUs are disabled so the commands may produce errors. In such cases execute commands on a compute node. It may help to hold a node by first executing `submitjob ghold`. Or, submit a download job on Compute Canada (requires internet connectivity on compute nodes):
 
-  `submitjob single -d nodes=1 mem=30G time=0-04:00 ntasks-per-node=1 cpus-per-task=4 -D email -e "CUDA_VISIBLE_DEVICES=\"\" python -c 'import tensorflow_datasets as tfds; tfds.load(\"imagenet_resized/32x32\")'"`
+  `submitjob single -d nodes=1 mem=30G time=0-04:00 ntasks-per-node=1 cpus-per-task=4 -D email -e "CUDA_VISIBLE_DEVICES=\"\" python3 -c 'import tensorflow_datasets as tfds; tfds.load(\"imagenet_resized/32x32\")'"`   
+  May have to try both `python` or `python3` as alias may not work when running jobs submitted through `submitjob`.
 
 * The `imagenet2012` dataset requires manually downloading original data to `tensorflow_datasets/downloads/manual` from http://www.image-net.org/challenges/LSVRC/2012/downloads as instructed in https://www.tensorflow.org/datasets/catalog/imagenet2012. 
