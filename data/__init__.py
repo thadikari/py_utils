@@ -25,7 +25,7 @@ class Dataset:
 
         v1d = tf.compat.v1.data
         self.handles = [_ds.make_one_shot_iterator().string_handle() for _ds in [train_ds, test_ds]]
-        self.handle = tf.placeholder(tf.string, shape=[])
+        self.handle = tf.compat.v1.placeholder(tf.string, shape=[])
         iterator = v1d.Iterator.from_string_handle(self.handle, v1d.get_output_types(train_ds), v1d.get_output_shapes(train_ds))
         next_batch = iterator.get_next()
         self.placeholders = tf.cast(next_batch['image'], tf.float32)/255.0, next_batch['label']
@@ -56,7 +56,7 @@ def merge_feed_dicts(*train_test_dicts_list):
 def compute_losses_ex(logits, target):
     num_classes = logits.shape[-1]
     target_1h = tf.one_hot(tf.cast(target, tf.int32), num_classes)
-    losses = tf.losses.softmax_cross_entropy(target_1h, logits, reduction='none')
+    losses = tf.compat.v1.losses.softmax_cross_entropy(target_1h, logits, reduction='none')
     sum_loss = tf.reduce_sum(losses)
     avg_loss = tf.reduce_mean(losses)
     return sum_loss, avg_loss
@@ -76,7 +76,7 @@ def compute_accuracy_topk(logits, target, k):
 
 
 def compute_metrics_ex(logits, target): # returns accuracy, sum_loss, avg_loss
-    return compute_accuracy(logits, target), (*compute_losses_ex(logits, target))
+    return compute_accuracy(logits, target), [*compute_losses_ex(logits, target)]
 
 def compute_metrics(logits, target): # returns accuracy, avg_loss
     return compute_accuracy(logits, target), compute_losses(logits, target)
