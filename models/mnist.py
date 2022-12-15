@@ -5,8 +5,8 @@ Number of parameters in following model: 3,274,634
 '''
 
 def create_plh():
-    placeholders = tf.placeholder(tf.float32, [None, 28, 28], name='image'),\
-                   tf.placeholder(tf.float32, [None], name='label')
+    placeholders = tf.compat.v1.placeholder(tf.float32, [None, 28, 28], name='image'),\
+                   tf.compat.v1.placeholder(tf.float32, [None], name='label')
     return placeholders
 
 
@@ -20,22 +20,22 @@ def create_conv(feature):
     the glorot_uniform_initializer is used to init tf.compat.v1.layers.dense.
     '''
 
-    layers = tf.layers
+    layers = tf.compat.v1.layers
     feature = tf.reshape(feature, [-1, 28, 28, 1])
 
     # First conv layer will compute 32 features for each 5x5 patch
     with tf.compat.v1.variable_scope('conv_layer1'):
         h_conv1 = layers.conv2d(feature, 32, kernel_size=[5, 5],
                                 activation=tf.nn.relu, padding="SAME")
-        h_pool1 = tf.nn.max_pool(
-            h_conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        h_pool1 = tf.nn.max_pool2d(
+            input=h_conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Second conv layer will compute 64 features for each 5x5 patch.
     with tf.compat.v1.variable_scope('conv_layer2'):
         h_conv2 = layers.conv2d(h_pool1, 64, kernel_size=[5, 5],
                                 activation=tf.nn.relu, padding="SAME")
-        h_pool2 = tf.nn.max_pool(
-            h_conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        h_pool2 = tf.nn.max_pool2d(
+            input=h_conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
         # reshape tensor into a batch of vectors
         h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
 

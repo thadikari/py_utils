@@ -17,7 +17,7 @@ layers = tf.keras.layers
 
 
 def create_plh():
-    flag_training = tf.placeholder(tf.bool, name='flag_training')
+    flag_training = tf.compat.v1.placeholder(tf.bool, name='flag_training')
     feed_dicts = {flag_training:True}, {flag_training:False}
     kwargs = {'training':flag_training}
     return kwargs, feed_dicts
@@ -350,7 +350,7 @@ class ResNet50(tf.keras.Model):
     # hack to support keras batch norm updates
     # https://github.com/tensorflow/tensorflow/issues/23873
     # https://github.com/tensorflow/tensorflow/issues/19643
-    for it in self.updates: tf.add_to_collection(tf.GraphKeys.UPDATE_OPS, it)
+    for it in self.updates: tf.compat.v1.add_to_collection(tf.compat.v1.GraphKeys.UPDATE_OPS, it)
 
     if self.include_top:
       return self.fc1000(self.flatten(x))

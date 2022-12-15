@@ -13,7 +13,7 @@ _BATCH_NORM_EPSILON = 1e-4
 
 
 def create_plh(with_data=True):
-    is_training = tf.placeholder(tf.bool, name='is_training')
+    is_training = tf.compat.v1.placeholder(tf.bool, name='is_training')
     feed_dicts = {is_training:True}, {is_training:False}
     kwargs = {'is_training': is_training}
     return kwargs, feed_dicts
@@ -23,7 +23,7 @@ def batch_norm_relu(inputs, is_training, data_format):
   """Performs a batch normalization followed by a ReLU."""
   # We set fused=True for a significant performance boost. See
   # https://www.tensorflow.org/performance/performance_guide#common_fused_ops
-  inputs = tf.layers.batch_normalization(
+  inputs = tf.compat.v1.layers.batch_normalization(
       inputs=inputs, axis=1 if data_format == 'channels_first' else 3,
       momentum=_BATCH_NORM_DECAY, epsilon=_BATCH_NORM_EPSILON, center=True,
       scale=True, training=is_training, fused=True)
@@ -48,20 +48,20 @@ def fixed_padding(inputs, kernel_size, data_format):
   pad_end = pad_total - pad_beg
 
   if data_format == 'channels_first':
-    padded_inputs = tf.pad(inputs, [[0, 0], [0, 0],
+    padded_inputs = tf.pad(tensor=inputs, paddings=[[0, 0], [0, 0],
                                     [pad_beg, pad_end], [pad_beg, pad_end]])
   else:
-    padded_inputs = tf.pad(inputs, [[0, 0], [pad_beg, pad_end],
+    padded_inputs = tf.pad(tensor=inputs, paddings=[[0, 0], [pad_beg, pad_end],
                                     [pad_beg, pad_end], [0, 0]])
   return padded_inputs
 
 
 def conv2d_fixed_padding(inputs, filters, kernel_size, strides, data_format):
 
-  return tf.layers.conv2d(
+  return tf.compat.v1.layers.conv2d(
       inputs=inputs, filters=filters, kernel_size=kernel_size, strides=strides,
       padding='SAME', use_bias=False,
-      kernel_initializer=tf.variance_scaling_initializer(scale=2.0, distribution='normal'),
+      kernel_initializer=tf.compat.v1.variance_scaling_initializer(scale=2.0, distribution='normal'),
       data_format=data_format)
 
 
@@ -95,7 +95,7 @@ def building_block(inputs, filters, is_training, projection_shortcut, strides,
       data_format=data_format)
 
   inputs = batch_norm_relu(inputs, is_training, data_format)
-  inputs = tf.layers.dropout(inputs=inputs, rate=dropoutrate, training=is_training)
+  inputs = tf.compat.v1.layers.dropout(inputs=inputs, rate=dropoutrate, training=is_training)
 
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=1,
@@ -170,10 +170,10 @@ def block_group(inputs, filters, block_fn, blocks, strides, dropoutrate, is_trai
   filters_out = 4 * filters if block_fn is bottleneck_block else filters
 
   def projection_shortcut(inputs):
-    return tf.layers.conv2d(
+    return tf.compat.v1.layers.conv2d(
       inputs=inputs, filters=filters_out, kernel_size=1, strides=strides,
       padding='SAME', use_bias=False,
-      kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=True),
+      kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution=("uniform" if True else "truncated_normal")),
       data_format=data_format)
 
   # Only the first block per block_layer uses projection_shortcut and strides
@@ -233,12 +233,12 @@ def create_model(inputs, is_training, depth=28, k=2, num_classes=1000, dropoutra
             data_format=data_format)
 
     inputs = batch_norm_relu(inputs, is_training, data_format)
-    inputs = tf.layers.average_pooling2d(
+    inputs = tf.compat.v1.layers.average_pooling2d(
         inputs=inputs, pool_size=8, strides=1, padding='VALID',
         data_format=data_format)
     inputs = tf.identity(inputs, 'final_avg_pool')
     inputs = tf.reshape(inputs, [-1, num_filters])
-    inputs = tf.layers.dense(inputs=inputs, units=num_classes)
+    inputs = tf.compat.v1.layers.dense(inputs=inputs, units=num_classes)
     inputs = tf.identity(inputs, 'final_dense')
 
     logits = inputs

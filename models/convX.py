@@ -17,7 +17,7 @@ Figure 2 in "THE LOTTERY TICKET HYPOTHESIS: FINDING SPARSE, TRAINABLE NEURAL NET
 Table 1 in "What’s Hidden in a Randomly Weighted Neural Network?"
 '''
 
-glorot_normal = tf.keras.initializers.glorot_normal()
+glorot_normal = tf.compat.v1.keras.initializers.glorot_normal()
 
 def create_model(convs, fcs):
     layers = []

@@ -12,58 +12,58 @@ Number of parameters in following model:
 
 
 def create_plh(with_data=True):
-    is_training = tf.placeholder(tf.bool, name='is_training')
+    is_training = tf.compat.v1.placeholder(tf.bool, name='is_training')
     # feed_train, feed_test
     feed_dicts = {is_training:True}, {is_training:False}
     kwargs = {'is_training':is_training}
     return kwargs, feed_dicts
 
 
-def identity_block2d(input_tensor, kernel_size, filters, stage, block, is_training, reuse, kernel_initializer=tf.contrib.layers.variance_scaling_initializer()):
+def identity_block2d(input_tensor, kernel_size, filters, stage, block, is_training, reuse, kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0)):
     filters1, filters2, filters3 = filters
 
     conv_name_2 = 'conv' + str(stage) + '_' + str(block) + '_3x3'
     bn_name_2   = 'bn'   + str(stage) + '_' + str(block) + '_3x3'
-    x = tf.layers.conv2d(input_tensor, filters2, kernel_size, use_bias=False, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_2, reuse=reuse)
-    x = tf.layers.batch_normalization(x, training=is_training, name=bn_name_2, reuse=reuse)
+    x = tf.compat.v1.layers.conv2d(input_tensor, filters2, kernel_size, use_bias=False, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_2, reuse=reuse)
+    x = tf.compat.v1.layers.batch_normalization(x, training=is_training, name=bn_name_2, reuse=reuse)
     x = tf.nn.relu(x)
 
     conv_name_3 = 'conv' + str(stage) + '_' + str(block) + '_1x1_increase'
     bn_name_3   = 'bn'   + str(stage) + '_' + str(block) + '_1x1_increase'
-    x = tf.layers.conv2d(x, filters3, (kernel_size, kernel_size), use_bias=False,  padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_3, reuse=reuse)
-    x = tf.layers.batch_normalization(x, training=is_training, name=bn_name_3, reuse=reuse)
+    x = tf.compat.v1.layers.conv2d(x, filters3, (kernel_size, kernel_size), use_bias=False,  padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_3, reuse=reuse)
+    x = tf.compat.v1.layers.batch_normalization(x, training=is_training, name=bn_name_3, reuse=reuse)
 
     x = tf.add(input_tensor, x)
     x = tf.nn.relu(x)
     return x
 
-def conv_block_2d(input_tensor, kernel_size, filters, stage, block, is_training, reuse, strides=(2, 2), kernel_initializer=tf.contrib.layers.variance_scaling_initializer()):
+def conv_block_2d(input_tensor, kernel_size, filters, stage, block, is_training, reuse, strides=(2, 2), kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0)):
     filters1, filters2, filters3 = filters
 
     conv_name_2 = 'conv' + str(stage) + '_' + str(block) + '_3x3'
     bn_name_2   = 'bn'   + str(stage) + '_' + str(block) + '_3x3'
-    x = tf.layers.conv2d(input_tensor, filters2, (kernel_size, kernel_size), use_bias=False, strides=strides, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_2, reuse=reuse)
-    x = tf.layers.batch_normalization(x, training=is_training, name=bn_name_2, reuse=reuse)
+    x = tf.compat.v1.layers.conv2d(input_tensor, filters2, (kernel_size, kernel_size), use_bias=False, strides=strides, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_2, reuse=reuse)
+    x = tf.compat.v1.layers.batch_normalization(x, training=is_training, name=bn_name_2, reuse=reuse)
     x = tf.nn.relu(x)
 
     conv_name_3 = 'conv' + str(stage) + '_' + str(block) + '_1x1_increase'
     bn_name_3   = 'bn'   + str(stage) + '_' + str(block) + '_1x1_increase'
-    x = tf.layers.conv2d(x, filters3, (kernel_size, kernel_size), use_bias=False, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_3, reuse=reuse)
-    x = tf.layers.batch_normalization(x, training=is_training, name=bn_name_3, reuse=reuse)
+    x = tf.compat.v1.layers.conv2d(x, filters3, (kernel_size, kernel_size), use_bias=False, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_3, reuse=reuse)
+    x = tf.compat.v1.layers.batch_normalization(x, training=is_training, name=bn_name_3, reuse=reuse)
 
     conv_name_4 = 'conv' + str(stage) + '_' + str(block) + '_1x1_shortcut'
     bn_name_4   = 'bn'   + str(stage) + '_' + str(block) + '_1x1_shortcut'
-    shortcut = tf.layers.conv2d(input_tensor, filters3, (kernel_size, kernel_size), use_bias=False, strides=strides, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_4, reuse=reuse)
-    shortcut = tf.layers.batch_normalization(shortcut, training=is_training, name=bn_name_4, reuse=reuse)
+    shortcut = tf.compat.v1.layers.conv2d(input_tensor, filters3, (kernel_size, kernel_size), use_bias=False, strides=strides, padding='SAME', kernel_initializer=kernel_initializer, name=conv_name_4, reuse=reuse)
+    shortcut = tf.compat.v1.layers.batch_normalization(shortcut, training=is_training, name=bn_name_4, reuse=reuse)
 
     x = tf.add(shortcut, x)
     x = tf.nn.relu(x)
     return x
 
 
-def create_resnet18(input_tensor, output_dim=100, is_training=True, pooling_and_fc=True, reuse=False, kernel_initializer=tf.contrib.layers.variance_scaling_initializer()):
-    x = tf.layers.conv2d(input_tensor, 64, (3,3), strides=(1,1), kernel_initializer=kernel_initializer, use_bias=False, padding='SAME', name='conv1_1/3x3_s1', reuse=reuse)
-    x = tf.layers.batch_normalization(x, training=is_training, name='bn1_1/3x3_s1', reuse=reuse)
+def create_resnet18(input_tensor, output_dim=100, is_training=True, pooling_and_fc=True, reuse=False, kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0)):
+    x = tf.compat.v1.layers.conv2d(input_tensor, 64, (3,3), strides=(1,1), kernel_initializer=kernel_initializer, use_bias=False, padding='SAME', name='conv1_1/3x3_s1', reuse=reuse)
+    x = tf.compat.v1.layers.batch_normalization(x, training=is_training, name='bn1_1/3x3_s1', reuse=reuse)
     x = tf.nn.relu(x)
 
     x1 = identity_block2d(x, 3, [48, 64, 64], stage=2, block='1b', is_training=is_training, reuse=reuse, kernel_initializer=kernel_initializer)
@@ -80,18 +80,18 @@ def create_resnet18(input_tensor, output_dim=100, is_training=True, pooling_and_
     x4 = identity_block2d(x4, 3, [256, 512, 512], stage=5, block='4b', is_training=is_training, reuse=reuse, kernel_initializer=kernel_initializer)
 
     # print('before gap: ', x4)
-    x4 = tf.reduce_mean(x4, [1,2])
+    x4 = tf.reduce_mean(input_tensor=x4, axis=[1,2])
     # print('after gap: ', x4)
     # flatten = tf.contrib.layers.flatten(x4)
-    prob = tf.layers.dense(x4, output_dim, reuse=reuse, kernel_initializer=tf.contrib.layers.xavier_initializer())
+    prob = tf.compat.v1.layers.dense(x4, output_dim, reuse=reuse, kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"))
     # prob = tf.layers.batch_normalization(prob, training=is_training, name='fbn', reuse=reuse)
     # print('prob', prob)
 
     return prob
 
-def create_resnet34(input_tensor, output_dim=100, is_training=True, pooling_and_fc=True, reuse=False, kernel_initializer=tf.contrib.layers.variance_scaling_initializer()):
-    x = tf.layers.conv2d(input_tensor, 64, (3,3), strides=(1,1), kernel_initializer=kernel_initializer, use_bias=False, padding='SAME', name='conv1_1/3x3_s1', reuse=reuse)
-    x = tf.layers.batch_normalization(x, training=is_training, name='bn1_1/3x3_s1', reuse=reuse)
+def create_resnet34(input_tensor, output_dim=100, is_training=True, pooling_and_fc=True, reuse=False, kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0)):
+    x = tf.compat.v1.layers.conv2d(input_tensor, 64, (3,3), strides=(1,1), kernel_initializer=kernel_initializer, use_bias=False, padding='SAME', name='conv1_1/3x3_s1', reuse=reuse)
+    x = tf.compat.v1.layers.batch_normalization(x, training=is_training, name='bn1_1/3x3_s1', reuse=reuse)
     x = tf.nn.relu(x)
 
     x1 = identity_block2d(x, 3, [48, 64, 64], stage=1, block='1a', is_training=is_training, reuse=reuse, kernel_initializer=kernel_initializer)
@@ -119,10 +119,10 @@ def create_resnet34(input_tensor, output_dim=100, is_training=True, pooling_and_
 
 
     # print('before gap: ', x4)
-    x4 = tf.reduce_mean(x4, [1,2])
+    x4 = tf.reduce_mean(input_tensor=x4, axis=[1,2])
     # print('after gap: ', x4)
     # flatten = tf.contrib.layers.flatten(x4)
-    prob = tf.layers.dense(x4, output_dim, reuse=reuse, kernel_initializer=tf.contrib.layers.xavier_initializer(), bias_initializer=tf.zeros_initializer())
+    prob = tf.compat.v1.layers.dense(x4, output_dim, reuse=reuse, kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"), bias_initializer=tf.compat.v1.zeros_initializer())
     # prob = tf.layers.batch_normalization(prob, training=is_training, name='fbn', reuse=reuse)
     # print('prob', prob)
 
