@@ -63,8 +63,10 @@ class NestedParser:
 
         return dict2ns(dict_out)
 
-    def get_child(self, name, prefix):
-        return NestedParser(self.parser, list(self.names) + [name], list(self.prefixes) + [prefix])
+    def get_child(self, name, prefix=None):
+        names = list(self.names) + [name]
+        prefixes = list(self.prefixes) + [name if prefix is None else prefix]
+        return NestedParser(self.parser, names, prefixes)
 
     @staticmethod
     def new():
