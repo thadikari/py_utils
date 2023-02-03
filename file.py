@@ -34,6 +34,10 @@ class CSVFile:
         self.csv.writerow(line)
         if flush: self.flush()
 
+    def writerows(self, lines, flush=True):
+        self.csv.writerows(lines)
+        if flush: self.flush()
+
     def flush(self):
         self.fp.flush()
 
